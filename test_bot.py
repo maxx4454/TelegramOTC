@@ -21,11 +21,12 @@ def start(message):
 
 @bot.message_handler(content_types=['text'])
 def action(message):
+    markup = types.ReplyKeyboardRemove()
     if message.text == 'Я хочу купить':
-        bot.send_message(message.chat.id, 'Отлично. Давай определимся что ты хочешь купить\nВведи название (например NFT)')
+        bot.send_message(message.chat.id, 'Отлично. Давай определимся что ты хочешь купить\nВведи название (например NFT)', reply_markup=markup)
         bot.register_next_step_handler(message, get_product)
     elif message.text == 'Я хочу продать':
-        bot.send_message(message.chat.id, 'Отлично. Давай определимся что ты хочешь продать\nВведи название (например NFT)')
+        bot.send_message(message.chat.id, 'Отлично. Давай определимся что ты хочешь продать\nВведи название (например NFT):', reply_markup=markup)
         bot.register_next_step_handler(message, get_product)
 
 def get_product(message):
