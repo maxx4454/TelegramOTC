@@ -26,6 +26,7 @@ def get_connection_verified():
     return __connection_verified
 
 
+# creates db, restarts if force = True
 def init_db(force: bool = False):
     conn_user = get_connection_user()
     conn_market = get_connection_market()
@@ -76,6 +77,7 @@ def init_db(force: bool = False):
     conn_market.commit()
 
 
+# moves order which is the first in the list to the verified orders table
 def verify_first_unverified():
     conn_verified = get_connection_verified()
     c_verified = conn_verified.cursor()
@@ -94,6 +96,7 @@ def verify_first_unverified():
     return True
 
 
+# returns True if address for a given user_id is known, false otherwise
 def find_user_address(user_id):
     conn = get_connection_user()
     c = conn.cursor()
@@ -104,6 +107,7 @@ def find_user_address(user_id):
         return False
 
 
+# function called when the order placed isnt fulfilled, deletes the order from unverified table
 def delete_first_unverified():
 
     conn = get_connection_market()
@@ -116,6 +120,8 @@ def delete_first_unverified():
     return True
 
 
+#returns all orders for given item
+#TODO: po-pidorski wa och cdelano nado cmortet polnoe sovpadenie
 def find_item(item: str):
     items = read_items()
     for i in items:
@@ -129,7 +135,7 @@ def find_item(item: str):
 
 
 
-
+# txt file with items -> array
 def read_items():
     arr = list()
     with open('items.txt', 'r') as file:
@@ -137,6 +143,7 @@ def read_items():
     return arr
 
 
+# returns all orders for user_id, including unverified
 def find_active_orders(user_id: int):
     list = []
     conn_v = get_connection_verified()
@@ -152,6 +159,7 @@ def find_active_orders(user_id: int):
     return list
 
 
+#returns lisst of all unverified orders
 def find_unverified():
     list = []
     conn = get_connection_market()
@@ -162,14 +170,14 @@ def find_unverified():
         list.append(row)
     return list
 
-
+#appends address to a user
 def add_address(user_id: int, address: str):
     conn = get_connection_user()
     c = conn.cursor()
     c.execute('INSERT INTO user_data (user_id, address) VALUES (?, ?)', (user_id, address))
     conn.commit()
 
-
+# user_ud -> address
 def return_address(user_id: int):
     conn = get_connection_user()
     c = conn.cursor()
@@ -178,7 +186,7 @@ def return_address(user_id: int):
 
     return res
 
-
+# returns account credential for an unverified order with id = Id
 def return_credentials(Id: int):
     conn = get_connection_market()
     c = conn.cursor()
@@ -190,6 +198,7 @@ def return_credentials(Id: int):
     return None
 
 
+# inserts _order into unverified table
 def add_params(user_id: int, params: list):
     conn = get_connection_market()
     c = conn.cursor()
