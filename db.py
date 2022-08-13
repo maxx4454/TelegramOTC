@@ -7,7 +7,8 @@ class Database:
     __connection_verified = sqlite3.connect('verified_data.db', check_same_thread=False)
 
     # creates db, restarts if force = True
-    def Database(self, force: bool = True):
+    def init(self, force=True):
+
         if force:
             conn_user = self.__connection_user
             conn_market = self.__connection_market
@@ -18,7 +19,7 @@ class Database:
             cur_verified = conn_verified.cursor()
 
             if force:
-                cur_user.execute('DROP TABLE IF EXISTS user_data')
+                cur_user.execute('DROP TABLE user_data')
             cur_user.execute('''
                 CREATE TABLE IF NOT EXISTS user_data (
                     id          INTEGER NOT NULL PRIMARY KEY,
@@ -28,7 +29,7 @@ class Database:
                 ''')
 
             if force:
-                cur_market.execute('DROP TABLE IF EXISTS order_data')
+                cur_market.execute('DROP TABLE order_data')
             cur_market.execute('''
                 CREATE TABLE IF NOT EXISTS order_data (
                     id          INTEGER NOT NULL PRIMARY KEY,
@@ -42,7 +43,7 @@ class Database:
                 ''')
 
             if force:
-                cur_verified.execute('DROP TABLE IF EXISTS verified_data')
+                cur_verified.execute('DROP TABLE verified_data')
             cur_verified.execute('''
                 CREATE TABLE IF NOT EXISTS verified_data (
                     id          INTEGER NOT NULL PRIMARY KEY,
@@ -58,6 +59,8 @@ class Database:
             conn_user.commit()
             conn_verified.commit()
             conn_market.commit()
+
+            print('dropped')
 
     # moves order which is the first in the list to the verified orders table
     def verify_first_unverified(self):
