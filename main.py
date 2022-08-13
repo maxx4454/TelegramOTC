@@ -1,7 +1,9 @@
 from functions import *
+from db import Database
 
 
 order = Order()
+db = Database()
 
 
 @bot.message_handler(commands=['start'])
@@ -27,6 +29,15 @@ def sell(message):
     order.sell(message.chat.id)
     bot.register_next_step_handler(message, get_type)
 
+# если нажал мои ордера
+@bot.message_handler(func = lambda message: message.text == bt.orders)
+def orders(message):
+    s = ''
+    orders = db.find_active_orders(message.chat.id)
+    for order in orders:
+        s += f'{str(order)}\n'
+    bot.send_message(message.chat.id, s)
+
 
 @bot.message_handler(content_types=['text'])
 def get_type(message):
@@ -46,12 +57,12 @@ def get_amount(message):
 
 def get_price(message):
     order.get_price(message.chat.id, message.text)
-    bot.register_next_step_handler(message, confirm_order)
-
-
-def confirm_order(message):
-    order.confirm_order(message.chat.id)
     bot.register_next_step_handler(message, check)
+
+
+# def confirm_order(message):
+#     order.confirm_order(message.chat.id)
+#     bot.register_next_step_handler(message, check)
 
 
 def check(message):
