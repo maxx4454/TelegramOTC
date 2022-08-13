@@ -7,7 +7,7 @@ class Database:
     __connection_verified = sqlite3.connect('verified_data.db', check_same_thread=False)
 
     # creates db, restarts if force = True
-    def Database(self, force: bool = False):
+    def Database(self, force: bool = True):
         if force:
             conn_user = self.__connection_user
             conn_market = self.__connection_market
@@ -35,6 +35,7 @@ class Database:
                     user_id     INTEGER NOT NULL,
                     side        TEXT,
                     amount      INTEGER,
+                    price       INTEGER,
                     item        TEXT,
                     credentials TEXT
                 )
@@ -48,6 +49,7 @@ class Database:
                     user_id     INTEGER NOT NULL,
                     side        TEXT,
                     amount      INTEGER,
+                    price       INTEGER,
                     item        TEXT,
                     credentials TEXT
                 )
