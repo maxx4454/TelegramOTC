@@ -1,6 +1,7 @@
 from db import *
 
 
+# takes item string as input, returns best sell order: tuple (id, amount) for given item from confirmed offers
 def find_best_sell_offer(item: str):
     conn = get_connection_verified()
     c = conn.cursor()
@@ -11,6 +12,7 @@ def find_best_sell_offer(item: str):
     return sell_offers[0]
 
 
+# takes item string as input, returns best buy order: tuple (id, amount) for given item from confirmed offers
 def find_best_buy_offer(item: str):
     conn = get_connection_verified()
     c = conn.cursor()
@@ -21,6 +23,7 @@ def find_best_buy_offer(item: str):
     return buy_offers[0]
 
 
+# gets best sell and buy offer for a given item and commits a trade when SELL_PRICE <= BUY_PRICE
 def conduct_trade(item: str):
     conn = get_connection_verified()
     c = conn.cursor()
@@ -41,10 +44,13 @@ def conduct_trade(item: str):
         c.commit()
 
 
+# TODO: should exchange cash and product between participants of the deal
 def trade(id_sell, id_buy):
     print('exchanged')
 
 
+# runs continuously
+# loops through all traded items and conducts trades if they are available
 def market_making():
     while True:
         for item in read_items():
