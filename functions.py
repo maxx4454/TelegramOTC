@@ -5,14 +5,15 @@ from config import *
 from buttons import Buttons
 from keyboards import *
 
-# from database import Database
+from db import Database
 
 
 bot = telebot.TeleBot(TOKEN)
 bt = Buttons()
 
 
-# db = Database()
+db = Database()
+
 
 class Order:
     _order = {}
@@ -47,11 +48,15 @@ class Order:
     def buy(self, user_id):
         bot.send_message(user_id, 'Какой тип продукта тебя интересует', reply_markup=buttons_types)
         self._order['side'] = 'buy'
+        self._order['user_id'] = user_id
+        self._order['credentials'] = None
 
-    # Обрабатываает нажатие на кнопку продажи
+
+    # Обрабатывает нажатие на кнопку продажи
     def sell(self, user_id):
         bot.send_message(user_id, 'Какой тип продукта тебя интересует', reply_markup=buttons_types)
         self._order['side'] = 'sell'
+
 
     # Название item
     def get_type(self, user_id, msg):
@@ -63,10 +68,14 @@ class Order:
 
     def get_item(self, user_id, msg):
         self._order['item'] = msg
-        bot.send_message(user_id, 'Сколько?')
+        bot.send_message(user_id, 'Сколько штук?')
 
     def get_amount(self, user_id, msg):
         self._order['amount'] = msg
+        bot.send_message(user_id, 'Сколько стоит?')
+
+    def get_price(self, user_id, msg):
+        self._order['price'] = msg
 
     def confirm_order(self, user_id):
         bot.send_message(user_id,
@@ -75,4 +84,15 @@ class Order:
                          f'Тип: {self._order["type"]}\n'
                          f'Товар: {self._order["item"]}\n'
                          f'Количество: {self._order["amount"]}\n\n'
+                         f'Цена: {self._order["price"]}\n'
                          'Все верно?', reply_markup=buttons_check)
+
+    def check(self, user_id, msg):
+        if msg == 'Да':
+            bot.send_message(user_id, 'Отлично! Добавим твой ордер в базу',
+                             reply_markup=telebot.types.ReplyKeyboardRemove())
+            db.add_params(self._order)
+            
+        if msg == 'Нет':
+            bot.send_message(user_id, 'Давай разбираться что не так',
+                             reply_markup=telebot.types.ReplyKeyboardRemove())
