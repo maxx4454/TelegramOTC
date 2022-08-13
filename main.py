@@ -7,12 +7,10 @@ order = Order()
 @bot.message_handler(commands=['start'])
 def start(message):
     bot.send_message(message.chat.id,
-
                      'Привет! <b>Это бот для OTC.</b>\n\n'
                      'Здесь ты можешь безопасно покупать и продавать товары со вторички\n'
                      'Выбери действие, которое тебя интересует',
                      parse_mode='html', reply_markup=main
-
                      )
 
 
@@ -30,12 +28,6 @@ def sell(message):
     bot.register_next_step_handler(message, get_type)
 
 
-# если нажал мои ордера
-# @bot.message_handler(func = lambda message: message.text == bt.orders)
-# def orders(message):
-#     func.information_about_orders(message.chat.id, message.from_user.id)
-
-
 @bot.message_handler(content_types=['text'])
 def get_type(message):
     order.get_type(message.chat.id, message.text)
@@ -49,6 +41,11 @@ def get_item(message):
 
 def get_amount(message):
     order.get_amount(message.chat.id, message.text)
+    bot.register_next_step_handler(message, get_price)
+
+
+def get_price(message):
+    order.get_price(message.chat.id, message.text)
     bot.register_next_step_handler(message, confirm_order)
 
 
@@ -58,12 +55,7 @@ def confirm_order(message):
 
 
 def check(message):
-    markup = telebot.types.ReplyKeyboardRemove()
-    if message.text == 'Да':
-        bot.send_message(message.chat.id, 'Отлично! Добавим твой ордер в базу', reply_markup=markup)
-    #     добавление ордера в дата базу
-    if message.text == 'Нет':
-        bot.send_message(message.chat.id, 'Давай разбираться что не так', reply_markup=markup)
+    order.check(message.chat.id, message.text)
 
 
 # @bot.callback_query_handler(func=lambda call: True)
