@@ -13,6 +13,7 @@ bt = Buttons()
 
 
 db = Database()
+db.init()
 
 
 class Order:
