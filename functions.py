@@ -1,13 +1,21 @@
 import telebot
 from config import *
+import telebot
+from config import *
+from buttons import Buttons
+from keyboards import *
+
 # from database import Database
 
 
 bot = telebot.TeleBot(TOKEN)
+bt = Buttons()
+
 
 # db = Database()
 
-# class Functions:
+class Order:
+    _order = {}
 
     # Обрабатывает нажатие на кнопку просмотра своих ордеров
     # def orders(self, chat_id, user_id):
@@ -35,41 +43,36 @@ bot = telebot.TeleBot(TOKEN)
     #     parse_mode='Markdown'
     #     )
 
-    # order = {}
-    # # Обрабатывает нажатие на кнопку покупки
-    # def buy(self, chat_id, user_id, message):
-    #     order_ = Functions.create_order(chat_id, user_id)
-    #     # bot.send_message(chat_id,
-    #     #                  'Отлично. Давай определимся что ты хочешь купить\n'
-    #     #                  'Введи название (например NFT)'
-    #     #                  )
-    #     bot.send_message(chat_id, f"{order['id']} + {order['item']} + {order['amount']}")
-    # # Обрабатываает нажатие на кнопку продажи
-    # def sell(self, chat_id, user_id):
-    #     bot.send_message(chat_id,
-    #                      'Отлично. Давай определимся что ты хочешь продать\n'
-    #                      'Введи название (например NFT)'
-    #                      )
-    # # Собираем item
-    # def create_order(self, chat_id, user_id):
-    #     new_order = {}
-    #
-    #     item = get_item()
-    #     amount = get_amount()
-    #
-    #     new_order['id'] = user_id
-    #     new_order['item'] = item
-    #     new_order['amount'] = amount
-    #
-    #     return new_order
-    #
-    # # Название item
-    # def get_item(self, chat_id, user_id, message):
-    #     bot.register_next_step_handler(message, get_item)
-    #     item = message
-    #     bot.send_message(chat_id,
-    #                      'Введите количество для покупки:'
-    #                      )
-    # # Количество item
-    # # def get_amount(self, chat_id, user_id, message):
-    # #     amount = int(message)
+    # Обрабатывает нажатие на кнопку покупки
+    def buy(self, user_id):
+        bot.send_message(user_id, 'Какой тип продукта тебя интересует', reply_markup=buttons_types)
+        self._order['side'] = 'buy'
+
+    # Обрабатываает нажатие на кнопку продажи
+    def sell(self, user_id):
+        bot.send_message(user_id, 'Какой тип продукта тебя интересует', reply_markup=buttons_types)
+        self._order['side'] = 'sell'
+
+    # Название item
+    def get_type(self, user_id, msg):
+        self._order['type'] = msg
+        bot.send_message(user_id,
+                         'Теперь напиши название самого товара',
+                         reply_markup=telebot.types.ReplyKeyboardRemove()
+                         )
+
+    def get_item(self, user_id, msg):
+        self._order['item'] = msg
+        bot.send_message(user_id, 'Сколько?')
+
+    def get_amount(self, user_id, msg):
+        self._order['amount'] = msg
+
+    def confirm_order(self, user_id):
+        bot.send_message(user_id,
+                         'Твой ордер:\n\n'
+                         f'Действие: {self._order["side"]}\n'
+                         f'Тип: {self._order["type"]}\n'
+                         f'Товар: {self._order["item"]}\n'
+                         f'Количество: {self._order["amount"]}\n\n'
+                         'Все верно?', reply_markup=buttons_check)
