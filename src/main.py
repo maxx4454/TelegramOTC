@@ -42,13 +42,27 @@ def sell(message):
 
 
 # если нажал мои ордера
-@bot.message_handler(func=lambda message: message.text == bt.orders)
+@bot.message_handler(func=lambda message: message.text == bt.my_orders)
 def orders(message):
     order.get_my_orders(message.chat.id)
     bot.register_next_step_handler(message, manage_orders)
 
+# если нажал мой адресс
+@bot.message_handler(func=lambda message: message.text == bt.my_address)
+def my_adress(message):
+    order.get_my_address(message.chat.id)
+
+# если нажал редактировать адресс
+@bot.message_handler(func=lambda message: message.text == bt.edit_address)
+def edit_address(message):
+    order.edit_address(message.chat.id)
+    bot.register_next_step_handler(message, get_new_address)
+
 
 @bot.message_handler(content_types=['text'])
+def get_new_address(message):
+    order.get_new_address(message.chat.id, message.text)
+
 def get_type(message):
     order.get_type(message.chat.id, message.text)
     bot.register_next_step_handler(message, get_item)
