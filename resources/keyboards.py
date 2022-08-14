@@ -21,6 +21,10 @@ buttons_types.row(bt.other)
 buttons_manage = telebot.types.ReplyKeyboardMarkup(True)
 buttons_manage.row(bt.change_price, bt.cancel_order)
 
+# Реплай кнопки верификации
+buttons_verify = telebot.types.ReplyKeyboardMarkup(True)
+buttons_verify.row(bt.verify, bt.decline)
+
 # inline_buttons_types = telebot.types.InlineKeyboardMarkup()
 #
 # allocation = telebot.types.InlineKeyboardButton(text = bt.allocation, callback_data = 'allocation')
