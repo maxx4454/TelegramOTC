@@ -2,9 +2,9 @@ import sqlite3
 
 
 class Database:
-    __connection_user = sqlite3.connect('../resources/user_data.db', check_same_thread=False)
-    __connection_market = sqlite3.connect('../resources/market_data.db', check_same_thread=False)
-    __connection_verified = sqlite3.connect('../resources/verified_data.db', check_same_thread=False)
+    __connection_user = sqlite3.connect('./resources/user_data.db', check_same_thread=False)
+    __connection_market = sqlite3.connect('./resources/market_data.db', check_same_thread=False)
+    __connection_verified = sqlite3.connect('./resources/verified_data.db', check_same_thread=False)
 
     # creates db, restarts if force = True
     def init(self, force=False):
