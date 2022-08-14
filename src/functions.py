@@ -28,6 +28,39 @@ class Order:
         self._order['side'] = 'sell'
         self._order['user_id'] = user_id
 
+    # Обрабатывает нажатие на кнопку мои ордера
+    def get_my_orders(self, user_id):
+        s = ''
+        orders = db.find_active_orders(user_id)
+        for i in range(len(orders)):
+            s += f'{i+1} - {str(orders[i])}\n'
+        bot.send_message(user_id, s)
+        bot.send_message(user_id, 'Напиши номер ордера который хочешь изменить или 0 чтобы вернуться', reply_markup=telebot.types.ReplyKeyboardRemove())
+
+    def manage(self, user_id, msg):
+        orders = db.find_active_orders(user_id)
+        if msg == '0':
+            bot.send_message(user_id, 'Главное меню', reply_markup=main)
+        else:
+            order_id = int(msg) - 1
+            bot.send_message(user_id, str(orders[order_id]))
+            bot.send_message(user_id, 'Что ты хочешь изменить в этом ордере?', reply_markup=buttons_manage)
+
+    def change_order(self, user_id, msg):
+        if msg == bt.change_price:
+            bot.send_message(user_id, 'Напиши новую желаемую цену', reply_markup=telebot.types.ReplyKeyboardRemove())
+        if msg == bt.cancel_order:
+            # отменяет ордер
+            bot.send_message(user_id, 'Ордер отменен')
+            bot.send_message(user_id, 'Главное меню', reply_markup=main)
+
+    def change_price(self, user_id, msg):
+        new_price = int(msg)
+        # меняет цену в ордере на new_price
+        bot.send_message(user_id, f'Цена на указанный ордер изменена на {new_price}')
+        bot.send_message(user_id, 'Главное меню', reply_markup=main)
+
+
     # Название item
     def get_type(self, user_id, msg):
         self._order['type'] = msg
@@ -37,15 +70,9 @@ class Order:
                          )
 
     def get_item(self, user_id, msg):
-        self._order['item'] = self._order['type'] + '_' + msg
-        best_offers_string = Utils.print_best_offers(db.get_best_offers(msg))
-        if db.find_item(self._order['item']):
-            bot.send_message(user_id, 'best offers: ' + "\n" + best_offers_string)
-            bot.send_message(user_id, 'Сколько штук?')
-            return True
-        else:
-            bot.send_message(user_id, 'u sure everything fine with the name? follow guidelines plz? TYPE "YES" if fine')
-            return False
+        self._order['item'] = msg
+        bot.send_message(user_id, Utils.print_best_offers(db.get_best_offers(msg)))
+        bot.send_message(user_id, 'Сколько штук?')
 
     def get_amount(self, user_id, msg):
         self._order['amount'] = Utils.input_int(msg)
@@ -65,12 +92,12 @@ class Order:
                          'Все верно?', reply_markup=buttons_check)
 
     def check(self, user_id, msg):
-        if msg == 'Да':
+        if msg == bt.yes:
             bot.send_message(user_id,
                              'Отлично! Добавим твой ордер в базу\ncredentials or Напиши в чат tx_id когда транзакция подтвердится',
                              reply_markup=telebot.types.ReplyKeyboardRemove())
 
-        if msg == 'Нет':
+        if msg == bt.no:
             bot.send_message(user_id, 'Давай разбираться что не так',
                              reply_markup=telebot.types.ReplyKeyboardRemove())
 
@@ -80,11 +107,13 @@ class Order:
         else:
             self.confirm_credentials(user_id, msg)
 
+
     def confirm_payment(self, user_id, tx_id):
-        payment = int(self._order['price']) * int(self._order['amount'])
+        payment = self._order['price'] * self._order['amount']
         if Bsc.check_deposit(payment, tx_id):
             db.add_to_verified(self._order)
             bot.send_message(user_id, 'ордер выставлен')
+            bot.send_message(user_id, 'Главное меню', reply_markup=main)
         else:
             bot.send_message(user_id, 'что-то не так. пиши админу')
 
@@ -97,27 +126,29 @@ class Order:
         admin_id = 585587478
         bot.send_message(admin_id, 'go verify')
 
-    def create_item(self):
-        db.create_item(self._order['item'], self._order['type'])
+    # def admin_verification(self):
+    #     admin_id = 585587478
+    #     unverified_list = db.find_unverified()
+    #     if len(unverified_list) > 0:
+    #         for unverified_order in unverified_list:
+    #             print(unverified_order)
+    #             reply_text = ''
+    #             address_t = db.return_address(unverified_order[1])
+    #             credentials = db.return_credentials(unverified_order[0])
+    #             print(address_t[0])
+    #
+    #             reply_text += str(address_t[0])
+    #             reply_text += "\n"
+    #             reply_text += str(unverified_order)
+    #             reply_text += "\n"
+    #             reply_text += str(credentials)
+    #             bot.send_message(admin_id, reply_text,
+    #                              reply_markup=telebot.types.ReplyKeyboardRemove())
+    #
+    #     else:
+    #         bot.send_message(admin_id, 'Давай разбираться что не так')
 
-# def admin_verification(self):
-#     admin_id = 585587478
-#     unverified_list = db.find_unverified()
-#     if len(unverified_list) > 0:
-#         for unverified_order in unverified_list:
-#             print(unverified_order)
-#             reply_text = ''
-#             address_t = db.return_address(unverified_order[1])
-#             credentials = db.return_credentials(unverified_order[0])
-#             print(address_t[0])
-#
-#             reply_text += str(address_t[0])
-#             reply_text += "\n"
-#             reply_text += str(unverified_order)
-#             reply_text += "\n"
-#             reply_text += str(credentials)
-#             bot.send_message(admin_id, reply_text,
-#                              reply_markup=telebot.types.ReplyKeyboardRemove())
-#
-#     else:
-#         bot.send_message(admin_id, 'Давай разбираться что не так')
+
+
+
+
