@@ -26,6 +26,7 @@ class Order:
     def sell(self, user_id):
         bot.send_message(user_id, 'Какой тип продукта тебя интересует', reply_markup=buttons_types)
         self._order['side'] = 'sell'
+        self._order['user_id'] = user_id
 
     # Название item
     def get_type(self, user_id, msg):
@@ -41,11 +42,11 @@ class Order:
         bot.send_message(user_id, 'Сколько штук?')
 
     def get_amount(self, user_id, msg):
-        self._order['amount'] = msg
+        self._order['amount'] = Utils.input_int(msg)
         bot.send_message(user_id, 'Сколько стоит?')
 
     def get_price(self, user_id, msg):
-        self._order['price'] = msg
+        self._order['price'] = Utils.input_int(msg)
 
     def request_confirm_order(self, user_id):
         bot.send_message(user_id,
