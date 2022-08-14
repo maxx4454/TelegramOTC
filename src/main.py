@@ -1,19 +1,11 @@
 from src.functions import *
 from src.db import Database
 from resources.config import *
+import multiprocessing
 
 order = Order()
 db = Database()
 
-
-@bot.message_handler(commands=['start'])
-def start(message):
-    bot.send_message(message.chat.id,
-                     'Привет! <b>Это бот для OTC.</b>\n\n'
-                     'Здесь ты можешь безопасно покупать и продавать товары со вторички\n'
-                     'Выбери действие, которое тебя интересует',
-                     parse_mode='html', reply_markup=main
-                     )
 
 @bot.message_handler(commands=['admin'])
 def admin(message):
@@ -25,6 +17,24 @@ def admin(message):
         bot.send_message(message.chat.id, 'У вас нет доступа')
         bot.send_message(message.chat.id, 'Главное меню', reply_markup=main)
 
+
+def admin_manage(message):
+    order.admin_manage(message.chat.id, message.text)
+    bot.register_next_step_handler(message, verify_order)
+
+
+def verify_order(message):
+    order.verify_order(message.chat.id, message.text)
+
+
+@bot.message_handler(commands=['start'])
+def start(message):
+    bot.send_message(message.chat.id,
+                     'Привет! <b>Это бот для OTC.</b>\n\n'
+                     'Здесь ты можешь безопасно покупать и продавать товары со вторички\n'
+                     'Выбери действие, которое тебя интересует',
+                     parse_mode='html', reply_markup=main
+                     )
 
 
 # если нажал купить
@@ -47,10 +57,17 @@ def orders(message):
     order.get_my_orders(message.chat.id)
     bot.register_next_step_handler(message, manage_orders)
 
+
 # если нажал мой адресс
 @bot.message_handler(func=lambda message: message.text == bt.my_address)
 def my_adress(message):
     order.get_my_address(message.chat.id)
+
+
+@bot.message_handler(content_types=['text'])
+def get_new_address(message):
+    order.get_new_address(message.chat.id, message.text)
+
 
 # если нажал редактировать адресс
 @bot.message_handler(func=lambda message: message.text == bt.edit_address)
@@ -60,17 +77,25 @@ def edit_address(message):
 
 
 @bot.message_handler(content_types=['text'])
-def get_new_address(message):
-    order.get_new_address(message.chat.id, message.text)
-
 def get_type(message):
     order.get_type(message.chat.id, message.text)
     bot.register_next_step_handler(message, get_item)
 
 
 def get_item(message):
-    order.get_item(message.chat.id, message.text)
-    bot.register_next_step_handler(message, get_amount)
+    if order.get_item(message.chat.id, message.text):
+        bot.register_next_step_handler(message, get_amount)
+    else:
+        bot.register_next_step_handler(message, check_if_ok)
+
+
+def check_if_ok(message):
+    if message.text == "YES":
+        bot.send_message(message.chat.id, 'Сколько штук?')
+        order.create_item()
+        bot.register_next_step_handler(message, get_amount)
+    else:
+        bot.send_message(message.chat.id, 'start over')
 
 
 def get_amount(message):
@@ -85,8 +110,14 @@ def get_price(message):
 
 
 def req_confirm_order(message):
-    order.check(message.chat.id, message.text)
-    bot.register_next_step_handler(message, confirm_order)
+    if order.check(message.chat.id, message.text):
+        bot.register_next_step_handler(message, confirm_order)
+
+        # if db.return_address(message.chat.id):
+        #     bot.register_next_step_handler(message, confirm_order)
+        # else:
+        #     bot.send_message(message.chat.id, 'your bep20 address?')
+        #     bot.register_next_step_handler(message, add_address)
 
 
 def confirm_order(message):
@@ -97,46 +128,23 @@ def manage_orders(message):
     order.manage(message.chat.id, message.text)
     bot.register_next_step_handler(message, change_order)
 
+
 def change_order(message):
     order.change_order(message.chat.id, message.text)
     bot.register_next_step_handler(message, change_price)
+
 
 def change_price(message):
     order.change_price(message.chat.id, message.text)
 
 
-def admin_manage(message):
-    order.admin_manage(message.chat.id, message.text)
-    bot.register_next_step_handler(message, verify_order)
-
-def verify_order(message):
-    order.verify_order(message.chat.id, message.text)
+def main_func():
+    bot.polling(none_stop=True)
 
 
-# @bot.callback_query_handler(func=lambda call: True)
-# def market(call):
-#     global order
-#     user_id = call.from_user.id
-#     chat_id = call.message.chat.id
-#
-#     #Обработка типов товара
-#     if call.data == 'allocation':
-#         order['type'] = 'allocation'
-#         bot.send_message(chat_id, 'allocation')
-#     if call.data == 'wl':
-#         order['type'] = 'wl'
-#     if call.data == 'sn_account':
-#         order['type'] = 'sn_account'
-#     if call.data == 'unlocked_tokens':
-#         order['type'] = 'unlocked_tokens'
-#     if call.data == 'other':
-#         order['type'] = 'other'
-#
-#     #Обработка проверки
-#     if call.data == 'yes':
-#         bot.send_message(chat_id, 'Отлично! Добавим твой ордер в базу')
-#     if call.data == 'no':
-#         bot.send_message(chat_id, 'Давай разбираться что не так')
-
-
-bot.polling(none_stop=True)
+MM = MarketMaking()
+if __name__ == "__main__":
+    p1 = multiprocessing.Process(target=main_func)
+    p2 = multiprocessing.Process(target=MM.market_making)
+    p1.start()
+    p2.start()
