@@ -239,15 +239,22 @@ class Database:
         c.execute(f"DELETE FROM verified_data WHERE Id = '{_id}'")
         conn.commit()
 
-    # returns all orders for given item
-    # TODO: po-pidorski wa och cdelano nado cmortet polnoe sovpadenie
+    # True if finds item False otherwise
     def find_item(self, item: str):
         items = self.read_items()
         for it in items:
             if it == item:
-                conn = self.__connection_verified
-                c = conn.cursor()
-                c.execute(f"SELECT side, amount, price FROM verified_data WHERE item = '{item}' ORDER BY side")
-                res = c.fetchall()
-                return res
-        return -1
+                return True
+                # conn = self.__connection_verified
+                # c = conn.cursor()
+                # c.execute(f"SELECT side, amount, price FROM verified_data WHERE item = '{item}' ORDER BY side")
+                # res = c.fetchall()
+                # return res
+        return False
+
+    def create_item(self, item, item_type):
+        conn = self.__connection_verified
+        c = conn.cursor()
+        c.execute('INSERT INTO item_data (item, item_type) VALUES (?, ?)', (item, item_type))
+
+        conn.commit()
