@@ -1,5 +1,6 @@
 from src.functions import *
 from src.db import Database
+from resources.config import *
 
 order = Order()
 db = Database()
@@ -13,6 +14,17 @@ def start(message):
                      'Выбери действие, которое тебя интересует',
                      parse_mode='html', reply_markup=main
                      )
+
+@bot.message_handler(commands=['admin'])
+def admin(message):
+    if str(message.from_user.id) in ADMIN:
+        bot.send_message(message.chat.id, 'Админ панель')
+        order.admin(message.chat.id)
+        bot.register_next_step_handler(message, admin_manage)
+    else:
+        bot.send_message(message.chat.id, 'У вас нет доступа')
+        bot.send_message(message.chat.id, 'Главное меню', reply_markup=main)
+
 
 
 # если нажал купить
@@ -77,6 +89,14 @@ def change_order(message):
 
 def change_price(message):
     order.change_price(message.chat.id, message.text)
+
+
+def admin_manage(message):
+    order.admin_manage(message.chat.id, message.text)
+    bot.register_next_step_handler(message, verify_order)
+
+def verify_order(message):
+    order.verify_order(message.chat.id, message.text)
 
 
 # @bot.callback_query_handler(func=lambda call: True)
