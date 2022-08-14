@@ -15,6 +15,35 @@ db.init()
 class Order:
     _order = {}
 
+    # Админка
+    def admin(self, user_id):
+        s = ''
+        orders = db.find_unverified()
+        for i in range(len(orders)):
+            s += f'{i + 1} - {str(orders[i])}\n'
+        bot.send_message(user_id, s)
+        bot.send_message(user_id, 'Напиши номер ордера который хочешь изменить или 0 чтобы вернуться', reply_markup=telebot.types.ReplyKeyboardRemove())
+
+    def admin_manage(self, user_id, msg):
+        orders = db.find_unverified()
+        if msg == '0':
+            bot.send_message(user_id, 'Главное меню', reply_markup=main)
+        else:
+            order_id = int(msg) - 1
+            bot.send_message(user_id, str(orders[order_id]))
+            bot.send_message(user_id, 'Выбери действие', reply_markup=buttons_verify)
+
+    def verify_order(self, user_id, msg):
+        if msg == bt.verify:
+            # верифицирует ордер
+            bot.send_message(user_id, 'Ордер верифицирован')
+            bot.send_message(user_id, 'Главное меню', reply_markup=main)
+        if msg == bt.decline:
+            # отклоняет ордер
+            bot.send_message(user_id, 'Ордер отклонен')
+            bot.send_message(user_id, 'Главное меню', reply_markup=main)
+
+
     # Обрабатывает нажатие на кнопку покупки
     def buy(self, user_id):
         bot.send_message(user_id, 'Какой тип продукта тебя интересует', reply_markup=buttons_types)
