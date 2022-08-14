@@ -1,7 +1,7 @@
 class Buttons:
     buy = 'Купить'
     sell = 'Продать'
-    orders = 'Мои ордера'
+    my_orders = 'Мои ордера'
     verify = 'Verify'
     wait = 'Wait'
     decline = 'Decline'
@@ -15,3 +15,5 @@ class Buttons:
     no = 'Нет'
     change_price = 'Поменять цену'
     cancel_order = 'Отменить ордер'
+    my_address = 'Мой адресс'
+    edit_address = 'Редактировать адресс'
