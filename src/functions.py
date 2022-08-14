@@ -4,65 +4,27 @@ from utils import Utils
 
 from db import Database
 from web3_module import Bsc
+from market_making import *
 
 bot = telebot.TeleBot(TOKEN)
 bt = Buttons()
 
-db = Database()
 db.init()
 
 
 class Order:
     _order = {}
-
-    # Админка
-    def admin(self, user_id):
-        s = ''
-        orders = db.find_unverified()
-        for i in range(len(orders)):
-            s += f'{i + 1} - {str(orders[i])}\n'
-        bot.send_message(user_id, s)
-        bot.send_message(user_id, 'Напиши номер ордера который хочешь изменить или 0 чтобы вернуться', reply_markup=telebot.types.ReplyKeyboardRemove())
-
-    def admin_manage(self, user_id, msg):
-        orders = db.find_unverified()
-        if msg == '0':
-            bot.send_message(user_id, 'Главное меню', reply_markup=main)
-        else:
-            order_id = int(msg) - 1
-            bot.send_message(user_id, str(orders[order_id]))
-            bot.send_message(user_id, 'Выбери действие', reply_markup=buttons_verify)
-
-    def verify_order(self, user_id, msg):
-        if msg == bt.verify:
-            # верифицирует ордер
-            bot.send_message(user_id, 'Ордер верифицирован', reply_markup=main)
-        if msg == bt.decline:
-            # отклоняет ордер
-            bot.send_message(user_id, 'Ордер отклонен', reply_markup=main)
-
-
-    # Обрабатывает нажатие на кнопку покупки
-    def buy(self, user_id):
-        bot.send_message(user_id, 'Какой тип продукта тебя интересует', reply_markup=buttons_types)
-        self._order['side'] = 'buy'
-        self._order['user_id'] = user_id
-        self._order['credentials'] = None
-
-    # Обрабатывает нажатие на кнопку продажи
-    def sell(self, user_id):
-        bot.send_message(user_id, 'Какой тип продукта тебя интересует', reply_markup=buttons_types)
-        self._order['side'] = 'sell'
-        self._order['user_id'] = user_id
+    _adm_order = {}
 
     # Обрабатывает нажатие на кнопку мои ордера
     def get_my_orders(self, user_id):
         s = ''
         orders = db.find_active_orders(user_id)
         for i in range(len(orders)):
-            s += f'{i+1} - {str(orders[i])}\n'
+            s += f'{i + 1} - {str(orders[i])}\n'
         bot.send_message(user_id, s)
-        bot.send_message(user_id, 'Напиши номер ордера который хочешь изменить или 0 чтобы вернуться', reply_markup=telebot.types.ReplyKeyboardRemove())
+        bot.send_message(user_id, 'Напиши номер ордера который хочешь изменить или 0 чтобы вернуться',
+                         reply_markup=telebot.types.ReplyKeyboardRemove())
 
     def manage(self, user_id, msg):
         orders = db.find_active_orders(user_id)
@@ -78,35 +40,25 @@ class Order:
             bot.send_message(user_id, 'Напиши новую желаемую цену', reply_markup=telebot.types.ReplyKeyboardRemove())
         if msg == bt.cancel_order:
             # отменяет ордер
-            bot.send_message(user_id, 'Ордер отменен', reply_markup=main)
+            bot.send_message(user_id, 'Ордер отменен')
 
     def change_price(self, user_id, msg):
         new_price = int(msg)
         # меняет цену в ордере на new_price
-        bot.send_message(user_id, f'Цена на указанный ордер изменена на {new_price}', reply_markup=main)
+        bot.send_message(user_id, f'Цена на указанный ордер изменена на {new_price}')
 
-    # Обрабатывает нажатие на кнопу мой адресс
-    def get_my_address(self, user_id):
-        if True: # Сделать проверку что уже хранится адресс
-            adress = 'bep20 address' # Записать сюда его адресс
-            bot.send_message(user_id, f'Твой адресс: {adress}')
-        else:
-            bot.send_message(user_id, 'Ты еще не говорил мне свой адресс\nНажми на кнопку Редактировать адресс', reply_markup=main)
+    # Обрабатывает нажатие на кнопку покупки
+    def buy(self, user_id):
+        bot.send_message(user_id, 'Какой тип продукта тебя интересует', reply_markup=buttons_types)
+        self._order['side'] = 'buy'
+        self._order['user_id'] = user_id
+        self._order['credentials'] = None
 
-    # Обрабатывает нажатие на кнопку редактировать адресс
-    def edit_address(self, user_id):
-        if True: # Сделать проверку что уже хранится его адресс
-            address = 'bep20 address' # Записать сюда его адресс
-            bot.send_message(user_id, f'Твой текущий адресс: {address}')
-            bot.send_message(user_id, 'Введи новый адрес сети bep20:')
-        else:
-            bot.send_message(user_id, 'Введи свой адрес сети bep20:', reply_markup=telebot.types.ReplyKeyboardRemove())
-
-    def get_new_address(self, user_id, msg):
-        new_address = str(msg)
-        # сделать удаление старого и добавление нового адреса соответственно
-        bot.send_message(user_id, 'Твой адресс изменен', reply_markup=main)
-
+    # Обрабатывает нажатие на кнопку продажи
+    def sell(self, user_id):
+        bot.send_message(user_id, 'Какой тип продукта тебя интересует', reply_markup=buttons_types)
+        self._order['side'] = 'sell'
+        self._order['user_id'] = user_id
 
     # Название item
     def get_type(self, user_id, msg):
@@ -117,9 +69,15 @@ class Order:
                          )
 
     def get_item(self, user_id, msg):
-        self._order['item'] = msg
-        bot.send_message(user_id, Utils.print_best_offers(db.get_best_offers(msg)))
-        bot.send_message(user_id, 'Сколько штук?')
+        self._order['item'] = self._order['type'] + '_' + msg
+        best_offers_string = Utils.print_best_offers(db.get_best_offers(msg))
+        if db.find_item(self._order['item']):
+            bot.send_message(user_id, 'best offers: ' + "\n" + best_offers_string)
+            bot.send_message(user_id, 'Сколько штук?')
+            return True
+        else:
+            bot.send_message(user_id, 'u sure everything fine with the name? follow guidelines plz? TYPE "YES" if fine')
+            return False
 
     def get_amount(self, user_id, msg):
         self._order['amount'] = Utils.input_int(msg)
@@ -143,10 +101,13 @@ class Order:
             bot.send_message(user_id,
                              'Отлично! Добавим твой ордер в базу\ncredentials or Напиши в чат tx_id когда транзакция подтвердится',
                              reply_markup=telebot.types.ReplyKeyboardRemove())
+            return True
 
         if msg == bt.no:
             bot.send_message(user_id, 'Давай разбираться что не так',
-                             reply_markup=telebot.types.ReplyKeyboardRemove())
+                             reply_markup=telebot
+                             .types.ReplyKeyboardRemove())
+            return False
 
     def confirm_order(self, user_id, msg):
         if self._order['side'] == 'buy':
@@ -154,47 +115,81 @@ class Order:
         else:
             self.confirm_credentials(user_id, msg)
 
-
     def confirm_payment(self, user_id, tx_id):
-        payment = self._order['price'] * self._order['amount']
+        payment = int(self._order['price']) * int(self._order['amount'])
         if Bsc.check_deposit(payment, tx_id):
             db.add_to_verified(self._order)
-            bot.send_message(user_id, 'ордер выставлен', reply_markup=main)
+            bot.send_message(user_id, 'ордер выставлен')
         else:
             bot.send_message(user_id, 'что-то не так. пиши админу')
 
     def confirm_credentials(self, user_id, msg):
         self._order['credentials'] = msg
         db.add_to_unverified(self._order)
-        self.admin_request_verify(msg, self._order['type'], self._order['item'])
+        self.admin_request_verify(user_id)
 
-    def admin_request_verify(self, creds, item_type, item):
+    def admin_request_verify(self, user_id):
         admin_id = 585587478
         bot.send_message(admin_id, 'go verify')
+        bot.send_message(user_id, 'wait for verification')
 
-    # def admin_verification(self):
-    #     admin_id = 585587478
-    #     unverified_list = db.find_unverified()
-    #     if len(unverified_list) > 0:
-    #         for unverified_order in unverified_list:
-    #             print(unverified_order)
-    #             reply_text = ''
-    #             address_t = db.return_address(unverified_order[1])
-    #             credentials = db.return_credentials(unverified_order[0])
-    #             print(address_t[0])
-    #
-    #             reply_text += str(address_t[0])
-    #             reply_text += "\n"
-    #             reply_text += str(unverified_order)
-    #             reply_text += "\n"
-    #             reply_text += str(credentials)
-    #             bot.send_message(admin_id, reply_text,
-    #                              reply_markup=telebot.types.ReplyKeyboardRemove())
-    #
-    #     else:
-    #         bot.send_message(admin_id, 'Давай разбираться что не так')
+    def create_item(self):
+        db.create_item(self._order['item'], self._order['type'])
 
+    # Админка
+    def admin(self, user_id):
+        s = ''
+        orders = db.find_unverified()
+        for i in range(len(orders)):
+            s += f'{i + 1} - {str(orders[i])}\n'
+        bot.send_message(user_id, s)
+        bot.send_message(user_id, 'Напиши номер ордера который хочешь изменить или 0 чтобы вернуться',
+                         reply_markup=telebot.types.ReplyKeyboardRemove())
 
+    def admin_manage(self, user_id, msg):
+        orders = db.find_unverified()
+        if msg == '0':
+            bot.send_message(user_id, 'Главное меню', reply_markup=main)
+        else:
+            order_id = int(msg) - 1
+            bot.send_message(user_id, str(orders[order_id]))
+            self._adm_order = orders[order_id]
+            bot.send_message(user_id, 'Выбери действие', reply_markup=buttons_verify)
 
+    def verify_order(self, user_id, msg):
+        if msg == bt.verify:
+            # верифицирует ордер
+            db.verify_first_unverified(self._adm_order[0])
+            bot.send_message(self._adm_order[1], 'Ордер верифицирован')
 
+        if msg == bt.decline:
+            # отклоняет ордер
+            db.delete_first_unverified(self._adm_order[0])
+            bot.send_message(self._adm_order[1], 'Ордер отклонен')
 
+        # Обрабатывает нажатие на кнопу мой адресс
+
+    def get_my_address(self, user_id):
+        if db.return_address(user_id):
+            bot.send_message(user_id, f'Твой адресс: {db.return_address(user_id)}')
+        else:
+            bot.send_message(user_id, 'Ты еще не говорил мне свой адресс\nНажми на кнопку Редактировать адресс',
+                             reply_markup=main)
+
+    # Обрабатывает нажатие на кнопку редактировать адресс
+    def edit_address(self, user_id):
+        if db.return_address(user_id):
+            bot.send_message(user_id, f'Твой текущий адресс: {db.return_address(user_id)}')
+            bot.send_message(user_id, 'Введи новый адрес сети bep20:')
+        else:
+            bot.send_message(user_id, 'Введи свой адрес сети bep20:',
+                             reply_markup=telebot.types.ReplyKeyboardRemove())
+
+    def get_new_address(self, user_id, msg):
+        db.remove_address(user_id)
+        if Utils.input_address(msg):
+            db.add_address(user_id, msg)
+        else:
+            bot.send_message(user_id, 'wrong format try again', reply_markup=main)
+
+        bot.send_message(user_id, 'Твой адресс изменен', reply_markup=main)
