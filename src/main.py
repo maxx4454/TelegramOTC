@@ -57,11 +57,11 @@ def get_amount(message):
 
 def get_price(message):
     order.get_price(message.chat.id, message.text)
-    order.confirm_order(message.chat.id)
-    bot.register_next_step_handler(message, confirm_order)
+    order.request_confirm_order(message.chat.id)
+    bot.register_next_step_handler(message, req_confirm_order)
 
 
-def confirm_order(message):
+def req_confirm_order(message):
     order.check(message.chat.id, message.text)
     bot.register_next_step_handler(message, confirm_order)
 
