@@ -36,12 +36,10 @@ class Order:
     def verify_order(self, user_id, msg):
         if msg == bt.verify:
             # верифицирует ордер
-            bot.send_message(user_id, 'Ордер верифицирован')
-            bot.send_message(user_id, 'Главное меню', reply_markup=main)
+            bot.send_message(user_id, 'Ордер верифицирован', reply_markup=main)
         if msg == bt.decline:
             # отклоняет ордер
-            bot.send_message(user_id, 'Ордер отклонен')
-            bot.send_message(user_id, 'Главное меню', reply_markup=main)
+            bot.send_message(user_id, 'Ордер отклонен', reply_markup=main)
 
 
     # Обрабатывает нажатие на кнопку покупки
@@ -80,14 +78,34 @@ class Order:
             bot.send_message(user_id, 'Напиши новую желаемую цену', reply_markup=telebot.types.ReplyKeyboardRemove())
         if msg == bt.cancel_order:
             # отменяет ордер
-            bot.send_message(user_id, 'Ордер отменен')
-            bot.send_message(user_id, 'Главное меню', reply_markup=main)
+            bot.send_message(user_id, 'Ордер отменен', reply_markup=main)
 
     def change_price(self, user_id, msg):
         new_price = int(msg)
         # меняет цену в ордере на new_price
-        bot.send_message(user_id, f'Цена на указанный ордер изменена на {new_price}')
-        bot.send_message(user_id, 'Главное меню', reply_markup=main)
+        bot.send_message(user_id, f'Цена на указанный ордер изменена на {new_price}', reply_markup=main)
+
+    # Обрабатывает нажатие на кнопу мой адресс
+    def get_my_address(self, user_id):
+        if True: # Сделать проверку что уже хранится адресс
+            adress = 'bep20 address' # Записать сюда его адресс
+            bot.send_message(user_id, f'Твой адресс: {adress}')
+        else:
+            bot.send_message(user_id, 'Ты еще не говорил мне свой адресс\nНажми на кнопку Редактировать адресс', reply_markup=main)
+
+    # Обрабатывает нажатие на кнопку редактировать адресс
+    def edit_address(self, user_id):
+        if True: # Сделать проверку что уже хранится его адресс
+            address = 'bep20 address' # Записать сюда его адресс
+            bot.send_message(user_id, f'Твой текущий адресс: {address}')
+            bot.send_message(user_id, 'Введи новый адрес сети bep20:')
+        else:
+            bot.send_message(user_id, 'Введи свой адрес сети bep20:', reply_markup=telebot.types.ReplyKeyboardRemove())
+
+    def get_new_address(self, user_id, msg):
+        new_address = str(msg)
+        # сделать удаление старого и добавление нового адреса соответственно
+        bot.send_message(user_id, 'Твой адресс изменен', reply_markup=main)
 
 
     # Название item
@@ -141,8 +159,7 @@ class Order:
         payment = self._order['price'] * self._order['amount']
         if Bsc.check_deposit(payment, tx_id):
             db.add_to_verified(self._order)
-            bot.send_message(user_id, 'ордер выставлен')
-            bot.send_message(user_id, 'Главное меню', reply_markup=main)
+            bot.send_message(user_id, 'ордер выставлен', reply_markup=main)
         else:
             bot.send_message(user_id, 'что-то не так. пиши админу')
 
