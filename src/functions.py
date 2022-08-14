@@ -37,9 +37,15 @@ class Order:
                          )
 
     def get_item(self, user_id, msg):
-        self._order['item'] = msg
-        bot.send_message(user_id, Utils.print_best_offers(db.get_best_offers(msg)))
-        bot.send_message(user_id, 'Сколько штук?')
+        self._order['item'] = self._order['type'] + '_' + msg
+        best_offers_string = Utils.print_best_offers(db.get_best_offers(msg))
+        if db.find_item(self._order['item']):
+            bot.send_message(user_id, 'best offers: ' + "\n" + best_offers_string)
+            bot.send_message(user_id, 'Сколько штук?')
+            return True
+        else:
+            bot.send_message(user_id, 'u sure everything fine with the name? follow guidelines plz? TYPE "YES" if fine')
+            return False
 
     def get_amount(self, user_id, msg):
         self._order['amount'] = Utils.input_int(msg)
@@ -74,9 +80,8 @@ class Order:
         else:
             self.confirm_credentials(user_id, msg)
 
-
     def confirm_payment(self, user_id, tx_id):
-        payment = self._order['price'] * self._order['amount']
+        payment = int(self._order['price']) * int(self._order['amount'])
         if Bsc.check_deposit(payment, tx_id):
             db.add_to_verified(self._order)
             bot.send_message(user_id, 'ордер выставлен')
@@ -92,29 +97,27 @@ class Order:
         admin_id = 585587478
         bot.send_message(admin_id, 'go verify')
 
-    # def admin_verification(self):
-    #     admin_id = 585587478
-    #     unverified_list = db.find_unverified()
-    #     if len(unverified_list) > 0:
-    #         for unverified_order in unverified_list:
-    #             print(unverified_order)
-    #             reply_text = ''
-    #             address_t = db.return_address(unverified_order[1])
-    #             credentials = db.return_credentials(unverified_order[0])
-    #             print(address_t[0])
-    #
-    #             reply_text += str(address_t[0])
-    #             reply_text += "\n"
-    #             reply_text += str(unverified_order)
-    #             reply_text += "\n"
-    #             reply_text += str(credentials)
-    #             bot.send_message(admin_id, reply_text,
-    #                              reply_markup=telebot.types.ReplyKeyboardRemove())
-    #
-    #     else:
-    #         bot.send_message(admin_id, 'Давай разбираться что не так')
+    def create_item(self):
+        db.create_item(self._order['item'], self._order['type'])
 
-
-
-
-
+# def admin_verification(self):
+#     admin_id = 585587478
+#     unverified_list = db.find_unverified()
+#     if len(unverified_list) > 0:
+#         for unverified_order in unverified_list:
+#             print(unverified_order)
+#             reply_text = ''
+#             address_t = db.return_address(unverified_order[1])
+#             credentials = db.return_credentials(unverified_order[0])
+#             print(address_t[0])
+#
+#             reply_text += str(address_t[0])
+#             reply_text += "\n"
+#             reply_text += str(unverified_order)
+#             reply_text += "\n"
+#             reply_text += str(credentials)
+#             bot.send_message(admin_id, reply_text,
+#                              reply_markup=telebot.types.ReplyKeyboardRemove())
+#
+#     else:
+#         bot.send_message(admin_id, 'Давай разбираться что не так')
