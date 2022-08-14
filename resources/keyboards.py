@@ -17,6 +17,10 @@ buttons_types.row(bt.allocation, bt.wl)
 buttons_types.row(bt.sn_account, bt.unlocked_tokens)
 buttons_types.row(bt.other)
 
+# Реплай кнопки изменения ордеров
+buttons_manage = telebot.types.ReplyKeyboardMarkup(True)
+buttons_manage.row(bt.change_price, bt.cancel_order)
+
 # inline_buttons_types = telebot.types.InlineKeyboardMarkup()
 #
 # allocation = telebot.types.InlineKeyboardButton(text = bt.allocation, callback_data = 'allocation')
