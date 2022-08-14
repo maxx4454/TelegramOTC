@@ -32,11 +32,8 @@ def sell(message):
 # если нажал мои ордера
 @bot.message_handler(func=lambda message: message.text == bt.orders)
 def orders(message):
-    s = ''
-    orders = db.find_active_orders(message.chat.id)
-    for order in orders:
-        s += f'{str(order)}\n'
-    bot.send_message(message.chat.id, s)
+    order.get_my_orders(message.chat.id)
+    bot.register_next_step_handler(message, manage_orders)
 
 
 @bot.message_handler(content_types=['text'])
@@ -46,18 +43,8 @@ def get_type(message):
 
 
 def get_item(message):
-    if order.get_item(message.chat.id, message.text):
-        bot.register_next_step_handler(message, get_amount)
-    else:
-        bot.register_next_step_handler(message, check_if_ok)
-
-
-def check_if_ok(message):
-    if message.text == "YES":
-        order.create_item()
-        bot.register_next_step_handler(message, get_amount)
-    else:
-        bot.send_message(message.chat.id, 'start over')
+    order.get_item(message.chat.id, message.text)
+    bot.register_next_step_handler(message, get_amount)
 
 
 def get_amount(message):
@@ -68,21 +55,7 @@ def get_amount(message):
 def get_price(message):
     order.get_price(message.chat.id, message.text)
     order.request_confirm_order(message.chat.id)
-
-    if db.return_address(message.chat.id):
-        bot.register_next_step_handler(message, req_confirm_order)
-    else:
-        bot.send_message(message.chat.id, 'your bep20 address?')
-        bot.register_next_step_handler(message, add_address)
-
-
-def add_address(message):
-    if Utils.input_address(message):
-        db.add_address(message.chat.id, message)
-        bot.send_message(message.chat.id, 'success')
-        bot.register_next_step_handler(message, req_confirm_order)
-    else:
-        bot.send_message(message.chat.id, 'start over')
+    bot.register_next_step_handler(message, req_confirm_order)
 
 
 def req_confirm_order(message):
@@ -92,6 +65,18 @@ def req_confirm_order(message):
 
 def confirm_order(message):
     order.confirm_order(message.chat.id, message.text)
+
+
+def manage_orders(message):
+    order.manage(message.chat.id, message.text)
+    bot.register_next_step_handler(message, change_order)
+
+def change_order(message):
+    order.change_order(message.chat.id, message.text)
+    bot.register_next_step_handler(message, change_price)
+
+def change_price(message):
+    order.change_price(message.chat.id, message.text)
 
 
 # @bot.callback_query_handler(func=lambda call: True)
