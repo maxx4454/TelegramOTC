@@ -44,6 +44,7 @@ class Database:
 
             if force:
                 cur_verified.execute('DROP TABLE verified_data')
+                cur_verified.execute('DROP TABLE item_data')
             cur_verified.execute('''
                 CREATE TABLE IF NOT EXISTS verified_data (
                     id          INTEGER NOT NULL PRIMARY KEY,
@@ -55,6 +56,13 @@ class Database:
                     credentials TEXT
                 )
                 ''')
+            cur_verified.execute('''
+                            CREATE TABLE IF NOT EXISTS item_data (
+                                id          INTEGER NOT NULL PRIMARY KEY,
+                                item        TEXT,
+                                item_type   TEXT
+                            )
+                            ''')
 
             conn_user.commit()
             conn_verified.commit()
@@ -105,32 +113,21 @@ class Database:
         #         list.append(row)
         return True
 
-    # returns all orders for given item
-    # TODO: po-pidorski wa och cdelano nado cmortet polnoe sovpadenie
-    def find_item(self, item: str):
-        items = self.read_items()
-        for i in items:
-            if item in i:
-                conn = self.__connection_verified
-                c = conn.cursor()
-                c.execute(f"SELECT side, amount FROM verified_data WHERE item = '{i}' ORDER BY side")
-                res = c.fetchall()
-                return res
-        return None
-
     # txt file with items -> array
     def read_items(self):
-        arr = list()
-        with open('../items.txt', 'r') as file:
-            arr = file.read().split('\n')
-        return arr
+        conn_v = self.__connection_verified
+        c_v = conn_v.cursor()
+        c_v.execute(
+            "SELECT item FROM item_data")
+        return c_v.fetchall()
 
     # returns all orders for user_id, including unverified
     def find_active_orders(self, user_id: int):
         list = []
         conn_v = self.__connection_verified
         c_v = conn_v.cursor()
-        c_v.execute(f"SELECT id, side, amount, item, price FROM verified_data WHERE user_id = '{user_id}' ORDER BY item")
+        c_v.execute(
+            f"SELECT id, side, amount, item, price FROM verified_data WHERE user_id = '{user_id}' ORDER BY item")
         res1 = c_v.fetchall()
         conn = self.__connection_market
         c = conn.cursor()
@@ -206,10 +203,51 @@ class Database:
     def get_best_offers(self, item: str):
         conn = self.__connection_verified
         c = conn.cursor()
-        c.execute(f'SELECT item, side, amount, price FROM verified_data WHERE side = "buy" AND item = "{item}" ORDER BY price DESC LIMIT 5')
+        c.execute(
+            f'SELECT item, side, amount, price FROM verified_data WHERE side = "buy" AND item = "{item}" ORDER BY price DESC LIMIT 5')
         best_buy_orders = c.fetchall()
 
-        c.execute(f'SELECT item, side, amount, price FROM verified_data WHERE side = "sell" AND item = "{item}" ORDER BY price ASC LIMIT 5')
+        c.execute(
+            f'SELECT item, side, amount, price FROM verified_data WHERE side = "sell" AND item = "{item}" ORDER BY price ASC LIMIT 5')
         best_sell_orders = c.fetchall()
 
         return best_buy_orders, best_sell_orders
+
+    # takes item string as input, returns best sell order: tuple (id, amount) for given item from confirmed offers
+    def find_best_sell_offer(self, item: str):
+        conn = self.__connection_verified
+        c = conn.cursor()
+        # c_market.execute('SELECT user_id, side, amount, item FROM order_data WHERE Id = (SELECT MIN(Id) FROM order_data)')
+        c.execute(
+            f"SELECT id, price, amount FROM verified_data WHERE item = '{item}' AND price = (SELECT MIN(price) FROM verified_data WHERE side = 'SELL') AND side = 'SELL'")
+        sell_offers = c.fetchall()
+        return sell_offers[0]
+
+    # takes item string as input, returns best buy order: tuple (id, amount) for given item from confirmed offers
+    def find_best_buy_offer(self, item: str):
+        conn = self.__connection_verified
+        c = conn.cursor()
+        # c_market.execute('SELECT user_id, side, amount, item FROM order_data WHERE Id = (SELECT MIN(Id) FROM order_data)')
+        c.execute(
+            f"SELECT id, price, amount FROM verified_data WHERE item = '{item}' AND price = (SELECT MAX(price) FROM verified_data WHERE side = 'BUY') AND side = 'BUY'")
+        buy_offers = c.fetchall()
+        return buy_offers[0]
+
+    def remove_id(self, _id: int):
+        conn = self.__connection_verified
+        c = conn.cursor()
+        c.execute(f"DELETE FROM verified_data WHERE Id = '{_id}'")
+        conn.commit()
+
+    # returns all orders for given item
+    # TODO: po-pidorski wa och cdelano nado cmortet polnoe sovpadenie
+    def find_item(self, item: str):
+        items = self.read_items()
+        for it in items:
+            if it == item:
+                conn = self.__connection_verified
+                c = conn.cursor()
+                c.execute(f"SELECT side, amount, price FROM verified_data WHERE item = '{item}' ORDER BY side")
+                res = c.fetchall()
+                return res
+        return -1
