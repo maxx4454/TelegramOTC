@@ -47,7 +47,7 @@ class Order:
     def get_price(self, user_id, msg):
         self._order['price'] = msg
 
-    def confirm_order(self, user_id):
+    def request_confirm_order(self, user_id):
         bot.send_message(user_id,
                          'Твой ордер:\n\n'
                          f'Действие: {self._order["side"]}\n'
@@ -88,8 +88,31 @@ class Order:
         self.admin_request_verify(msg, self._order['type'], self._order['item'])
 
     def admin_request_verify(self, creds, item_type, item):
-        admin_id = 5
+        admin_id = 585587478
         bot.send_message(admin_id, 'go verify')
+
+    # def admin_verification(self):
+    #     admin_id = 585587478
+    #     unverified_list = db.find_unverified()
+    #     if len(unverified_list) > 0:
+    #         for unverified_order in unverified_list:
+    #             print(unverified_order)
+    #             reply_text = ''
+    #             address_t = db.return_address(unverified_order[1])
+    #             credentials = db.return_credentials(unverified_order[0])
+    #             print(address_t[0])
+    #
+    #             reply_text += str(address_t[0])
+    #             reply_text += "\n"
+    #             reply_text += str(unverified_order)
+    #             reply_text += "\n"
+    #             reply_text += str(credentials)
+    #             bot.send_message(admin_id, reply_text,
+    #                              reply_markup=telebot.types.ReplyKeyboardRemove())
+    #
+    #     else:
+    #         bot.send_message(admin_id, 'Давай разбираться что не так')
+
 
 
 
