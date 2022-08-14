@@ -13,3 +13,5 @@ class Buttons:
     other = 'other'
     yes = 'Да'
     no = 'Нет'
+    change_price = 'Поменять цену'
+    cancel_order = 'Отменить ордер'
