@@ -43,6 +43,7 @@ class Database:
                 ''')
 
             if force:
+                # pass
                 cur_verified.execute('DROP TABLE verified_data')
                 cur_verified.execute('DROP TABLE item_data')
             cur_verified.execute('''
@@ -71,25 +72,23 @@ class Database:
             print('dropped')
 
     # moves order which is the first in the list to the verified orders table
-    def verify_first_unverified(self):
+    def verify_first_unverified(self, order_id):
         conn_verified = self.__connection_verified
         c_verified = conn_verified.cursor()
         conn_market = self.__connection_market
         c_market = conn_market.cursor()
 
         c_market.execute(
-            'SELECT user_id, side, amount, item, credentials FROM order_data WHERE Id = (SELECT MIN(Id) FROM order_data)')
-        temp = c_market.fetchall()
+            f'SELECT user_id, side, amount, price, item, credentials FROM order_data WHERE Id = "{order_id}" ')
+        temp = c_market.fetchone()
         print(temp)
         c_verified.execute(
-            'INSERT INTO verified_data (user_id, side, amount, item, credentials) VALUES (?, ?, ?, ?, ?)',
-            (temp[0][0], temp[0][1], temp[0][2], temp[0][3], temp[0][4]))
-        c_market.execute('DELETE FROM order_data WHERE Id = (SELECT MIN(Id) FROM order_data)')
+            'INSERT INTO verified_data (user_id, side, amount, price, item, credentials) VALUES (?, ?, ?, ?, ?, ?)',
+            (temp[0], temp[1], temp[2], temp[3], temp[4], temp[5]))
+        c_market.execute(f'DELETE FROM order_data WHERE Id = "{order_id}"')
 
         conn_verified.commit()
         conn_market.commit()
-
-        return True
 
     # returns True if address for a given user_id is known, false otherwise
     def find_user_address(self, user_id):
@@ -102,16 +101,11 @@ class Database:
             return False
 
     # function called when the order placed isnt fulfilled, deletes the order from unverified table
-    def delete_first_unverified(self):
-
+    def delete_first_unverified(self, order_id):
         conn = self.__connection_market
         c = conn.cursor()
-        c.execute('DELETE FROM order_data WHERE id = (SELECT MIN(id) FROM order_data)')
+        c.execute(f'DELETE FROM order_data WHERE Id = "{order_id}"')
         conn.commit()
-        # for row in res:
-        #     if item in row[object]:
-        #         list.append(row)
-        return True
 
     # txt file with items -> array
     def read_items(self):
@@ -162,9 +156,15 @@ class Database:
         conn = self.__connection_user
         c = conn.cursor()
         c.execute(f"SELECT address FROM user_data WHERE user_id == '{user_id}'")
-        res = c.fetchall()
+        res = c.fetchone()
 
         return res
+
+    def remove_address(self, user_id: int):
+        conn = self.__connection_user
+        c = conn.cursor()
+        c.execute(f"DELETE FROM user_data WHERE user_id == '{user_id}'")
+        conn.commit()
 
     # returns account credential for an unverified order with id = Id
     def return_credentials(self, Id: int):
@@ -219,9 +219,11 @@ class Database:
         c = conn.cursor()
         # c_market.execute('SELECT user_id, side, amount, item FROM order_data WHERE Id = (SELECT MIN(Id) FROM order_data)')
         c.execute(
-            f"SELECT id, price, amount FROM verified_data WHERE item = '{item}' AND price = (SELECT MIN(price) FROM verified_data WHERE side = 'SELL') AND side = 'SELL'")
-        sell_offers = c.fetchall()
-        return sell_offers[0]
+            f'SELECT id, price, amount FROM verified_data WHERE item = "{item}" AND price = (SELECT MIN(price) FROM verified_data WHERE side = "SELL") AND side = "SELL"')
+        sell_offers = c.fetchone()
+        if sell_offers:
+            return sell_offers[0]
+        return None
 
     # takes item string as input, returns best buy order: tuple (id, amount) for given item from confirmed offers
     def find_best_buy_offer(self, item: str):
@@ -229,9 +231,11 @@ class Database:
         c = conn.cursor()
         # c_market.execute('SELECT user_id, side, amount, item FROM order_data WHERE Id = (SELECT MIN(Id) FROM order_data)')
         c.execute(
-            f"SELECT id, price, amount FROM verified_data WHERE item = '{item}' AND price = (SELECT MAX(price) FROM verified_data WHERE side = 'BUY') AND side = 'BUY'")
-        buy_offers = c.fetchall()
-        return buy_offers[0]
+            f'SELECT id, price, amount FROM verified_data WHERE item = "{item}" AND price = (SELECT MAX(price) FROM verified_data WHERE side = "BUY") AND side = "BUY"')
+        buy_offers = c.fetchone()
+        if buy_offers:
+            return buy_offers[0]
+        return None
 
     def remove_id(self, _id: int):
         conn = self.__connection_verified
