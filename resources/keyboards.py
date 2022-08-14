@@ -6,16 +6,21 @@ bt = Buttons()
 # Реплай кнопки в начале
 main = telebot.types.ReplyKeyboardMarkup(True)
 main.row(bt.buy, bt.sell)
-main.row(bt.orders)
+main.row(bt.my_orders, bt.my_address)
+main.row(bt.edit_address)
 
-go_main = telebot.types.ReplyKeyboardMarkup(True)
-go_main.row(bt.back)
+# go_main = telebot.types.ReplyKeyboardMarkup(True)
+# go_main.row(bt.back)
 
 # Реплай кнопки типов
 buttons_types = telebot.types.ReplyKeyboardMarkup(True)
 buttons_types.row(bt.allocation, bt.wl)
 buttons_types.row(bt.sn_account, bt.unlocked_tokens)
 buttons_types.row(bt.other)
+
+# Реплай кнопки проверки
+buttons_check = telebot.types.ReplyKeyboardMarkup(True)
+buttons_check.row(bt.yes, bt.no)
 
 # Реплай кнопки изменения ордеров
 buttons_manage = telebot.types.ReplyKeyboardMarkup(True)
@@ -39,9 +44,7 @@ buttons_verify.row(bt.verify, bt.decline)
 # inline_buttons_types.add(unlocked_tokes)
 # inline_buttons_types.add(other)
 
-# Реплай кнопки проверки
-buttons_check = telebot.types.ReplyKeyboardMarkup(True)
-buttons_check.row(bt.yes, bt.no)
+
 
 # Инлайн кнопки проверки
 # inline_buttons_check = telebot.types.InlineKeyboardMarkup()
