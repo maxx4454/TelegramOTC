@@ -46,8 +46,18 @@ def get_type(message):
 
 
 def get_item(message):
-    order.get_item(message.chat.id, message.text)
-    bot.register_next_step_handler(message, get_amount)
+    if order.get_item(message.chat.id, message.text):
+        bot.register_next_step_handler(message, get_amount)
+    else:
+        bot.register_next_step_handler(message, check_if_ok)
+
+
+def check_if_ok(message):
+    if message.text == "YES":
+        order.create_item()
+        bot.register_next_step_handler(message, get_amount)
+    else:
+        bot.send_message(message.chat.id, 'start over')
 
 
 def get_amount(message):
@@ -58,7 +68,21 @@ def get_amount(message):
 def get_price(message):
     order.get_price(message.chat.id, message.text)
     order.request_confirm_order(message.chat.id)
-    bot.register_next_step_handler(message, req_confirm_order)
+
+    if db.return_address(message.chat.id):
+        bot.register_next_step_handler(message, req_confirm_order)
+    else:
+        bot.send_message(message.chat.id, 'your bep20 address?')
+        bot.register_next_step_handler(message, add_address)
+
+
+def add_address(message):
+    if Utils.input_address(message):
+        db.add_address(message.chat.id, message)
+        bot.send_message(message.chat.id, 'success')
+        bot.register_next_step_handler(message, req_confirm_order)
+    else:
+        bot.send_message(message.chat.id, 'start over')
 
 
 def req_confirm_order(message):
