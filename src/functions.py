@@ -119,7 +119,7 @@ class Order:
         payment = int(self._order['price']) * int(self._order['amount'])
         if Bsc.check_deposit(payment, tx_id):
             db.add_to_verified(self._order)
-            bot.send_message(user_id, 'ордер выставлен')
+            bot.send_message(user_id, 'ордер выставлен', reply_markup=main)
         else:
             bot.send_message(user_id, 'что-то не так. пиши админу')
 
@@ -129,7 +129,7 @@ class Order:
         self.admin_request_verify(user_id)
 
     def admin_request_verify(self, user_id):
-        admin_id = 585587478
+        admin_id = 892338763
         bot.send_message(admin_id, 'go verify')
         bot.send_message(user_id, 'wait for verification')
 
@@ -161,14 +161,16 @@ class Order:
             # верифицирует ордер
             db.verify_first_unverified(self._adm_order[0])
             bot.send_message(self._adm_order[1], 'Ордер верифицирован')
+            bot.send_message(user_id, 'Скинь файл .txt с новыми credentials')
 
         if msg == bt.decline:
             # отклоняет ордер
             db.delete_first_unverified(self._adm_order[0])
             bot.send_message(self._adm_order[1], 'Ордер отклонен')
 
-        # Обрабатывает нажатие на кнопу мой адресс
+    # def get_new_credentials(self, ):
 
+    # Обрабатывает нажатие на кнопу мой адресс
     def get_my_address(self, user_id):
         if db.return_address(user_id):
             bot.send_message(user_id, f'Твой адресс: {db.return_address(user_id)}')
