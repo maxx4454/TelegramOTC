@@ -25,6 +25,20 @@ def admin_manage(message):
 
 def verify_order(message):
     order.verify_order(message.chat.id, message.text)
+    bot.register_next_step_handler(message, get_new_credentials)
+
+@bot.message_handler(content_types=['document'])
+def get_new_credentials(message):
+    file_info = bot.get_file(message.document.file_id)
+    downloaded_file = bot.download_file(file_info.file_path)
+
+    src = '../resources/new_credentials/' + message.document.file_name
+    with open(src, 'wb') as new_file:
+        new_file.write(downloaded_file)
+    with open(src, 'r') as f:
+        new_credentials = f.read()
+    bot.send_message(message.chat.id, 'Главное меню', reply_markup=main)
+    # new_credentials - строка с содержимым файла
 
 
 @bot.message_handler(commands=['start'])
