@@ -177,6 +177,15 @@ class Database:
             return res[0]
         return None
 
+
+    def return_order(self, Id: int):
+        conn = self.__connection_market
+        c = conn.cursor()
+        c.execute(f"SELECT user_id, item, side, amount, price, credentials FROM order_data WHERE id == '{Id}'")
+        res = c.fetchone()
+        # надо сделать проверку если адресов дали несколько и вообще не давать записывать несколько от одного юзера
+        return res
+
     # inserts _order into unverified table
     def add_to_unverified(self, _order: dict):
         conn = self.__connection_market
