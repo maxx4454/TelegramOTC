@@ -9,11 +9,13 @@ class Utils:
     @staticmethod
     def input_address(msg):
         if len(msg) != 42:
+            print(1)
             return False
         if msg[:2] != '0x':
+            print(2)
             return False
         for c in msg:
-            if not c.isalpha() or not c.isdigit():
+            if not (c.isalpha() or c.isdigit()):
                 return False
         return True
 
