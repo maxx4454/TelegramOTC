@@ -131,7 +131,7 @@ class Order:
     def admin_request_verify(self, user_id):
         admin_id = 892338763
         bot.send_message(admin_id, 'go verify')
-        bot.send_message(user_id, 'wait for verification')
+        bot.send_message(user_id, 'wait for verification', reply_markup=main)
 
     def create_item(self):
         db.create_item(self._order['item'], self._order['type'])
@@ -168,7 +168,17 @@ class Order:
             db.delete_first_unverified(self._adm_order[0])
             bot.send_message(self._adm_order[1], 'Ордер отклонен')
 
-    # def get_new_credentials(self, ):
+    def get_new_credentials(self, user_id, msg):
+        file_info = bot.get_file(msg.document.file_id)
+        downloaded_file = bot.download_file(file_info.file_path)
+
+        src = '../resources/new_credentials/' + msg.document.file_name
+        with open(src, 'wb') as new_file:
+            new_file.write(downloaded_file)
+        with open(src, 'r') as f:
+            new_credentials = f.read()
+        # new_credentials - строка с содержимым файла
+        bot.send_message(user_id, 'Главное меню', reply_markup=main)
 
     # Обрабатывает нажатие на кнопу мой адресс
     def get_my_address(self, user_id):
