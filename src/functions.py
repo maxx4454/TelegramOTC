@@ -23,11 +23,11 @@ class Order:
         sell_orders = ''
         orders = db.find_active_orders(user_id)
         if len(orders) != 0:
-            for i in range(len(orders)):
-                if orders[i][1] == 'buy':
-                    buy_orders += f'{i + 1} - Тип_товар: {orders[i][3]}, Количество: {str(orders[i][2])}, Цена: {str(orders[i][4])}\n'
+            for index, order in enumerate(orders):
+                if order[1] == 'buy':
+                    buy_orders += f'{index + 1} - Тип_товар: {order[3]}, Количество: {str(order[2])}, Цена: {str(order[4])}\n'
                 else:
-                    sell_orders += f'{i + 1} - Тип_товар: {orders[i][3]}, Количество: {str(orders[i][2])}, Цена: {str(orders[i][4])}\n'
+                    sell_orders += f'{index + 1} - Тип_товар: {order[3]}, Количество: {str(order[2])}, Цена: {str(order[4])}\n'
             bot.send_message(user_id, '<b>Твои ордера на покупку:</b>\n\n' + buy_orders, parse_mode='html')
             bot.send_message(user_id, '<b>Твои ордера на продажу:</b>\n\n' + sell_orders, parse_mode='html')
             bot.send_message(user_id, 'Напиши номер ордера (число слева) который хочешь изменить или 0 чтобы вернуться',
@@ -163,8 +163,8 @@ class Order:
         s = ''
         orders = db.find_unverified()
         if len(orders) != 0:
-            for i in range(len(orders)):
-                s += f'{i + 1} - {str(orders[i])}\n'
+            for index, order in enumerate(orders):
+                s += f'{index + 1} - {str(order)}\n'
             bot.send_message(user_id, s)
             bot.send_message(user_id, 'Напиши номер ордера который хочешь изменить или 0 чтобы вернуться',
                              reply_markup=telebot.types.ReplyKeyboardRemove())
