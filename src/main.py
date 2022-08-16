@@ -31,6 +31,9 @@ def verify_order(message):
 def get_new_credentials(message):
     order.get_new_credentials(message.chat.id, message)
 
+def get_credentials(message):
+    order.get_credentials(message.chat.id, message)
+
 
 @bot.message_handler(commands=['start'])
 def start(message):
@@ -67,11 +70,6 @@ def orders(message):
 @bot.message_handler(func=lambda message: message.text == bt.my_address)
 def my_adress(message):
     order.get_my_address(message.chat.id)
-
-
-@bot.message_handler(content_types=['text'])
-def get_new_address(message):
-    order.get_new_address(message.chat.id, message.text)
 
 
 # если нажал редактировать адресс
@@ -113,10 +111,14 @@ def get_price(message):
     order.request_confirm_order(message.chat.id)
     bot.register_next_step_handler(message, req_confirm_order)
 
+def get_new_address(message):
+    order.get_new_address(message.chat.id, message.text)
 
 def req_confirm_order(message):
-    if order.check(message.chat.id, message.text):
-        bot.register_next_step_handler(message, confirm_order)
+    if order.check(message.chat.id, message.text) == 'buy':
+        bot.register_next_step_handler(message, get_tx_id)
+    else:
+        bot.register_next_step_handler(message, get_credentials)
 
         # if db.return_address(message.chat.id):
         #     bot.register_next_step_handler(message, confirm_order)
@@ -124,9 +126,8 @@ def req_confirm_order(message):
         #     bot.send_message(message.chat.id, 'your bep20 address?')
         #     bot.register_next_step_handler(message, add_address)
 
-
-def confirm_order(message):
-    order.confirm_order(message.chat.id, message.text)
+def get_tx_id(message):
+    order.confirm_payment(message.chat.id, message.text)
 
 
 def manage_orders(message):
@@ -141,6 +142,8 @@ def change_order(message):
 
 def change_price(message):
     order.change_price(message.chat.id, message.text)
+
+
 
 
 def main_func():
