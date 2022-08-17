@@ -18,20 +18,9 @@ def admin(message):
         bot.send_message(message.chat.id, 'Главное меню', reply_markup=main)
 
 
-def admin_manage(message):
-    order.admin_manage(message.chat.id, message.text)
-    bot.register_next_step_handler(message, verify_order)
-
-
-def verify_order(message):
-    order.verify_order(message.chat.id, message.text)
-    bot.register_next_step_handler(message, get_new_credentials)
-
-
 @bot.message_handler(content_types=['document'])
 def get_new_credentials(message):
     order.get_new_credentials(message.chat.id, message)
-
 
 def get_credentials(message):
     order.get_credentials(message.chat.id, message)
@@ -45,51 +34,51 @@ def start(message):
                      'Выбери действие, которое тебя интересует',
                      parse_mode='html', reply_markup=main
                      )
+    bot.register_next_step_handler(message, basic)
 
 
-# если нажал купить
-@bot.message_handler(func=lambda message: message.text == bt.buy)
-def buy(message):
-    order.buy(message.chat.id)
-    bot.register_next_step_handler(message, get_type)
-
-
-# если нажал продать
-@bot.message_handler(func=lambda message: message.text == bt.sell)
-def sell(message):
-    order.sell(message.chat.id)
-    bot.register_next_step_handler(message, get_type)
-
-
-# если нажал мои ордера
-@bot.message_handler(func=lambda message: message.text == bt.my_orders)
-def orders(message):
-    order.get_my_orders(message.chat.id)
-    bot.register_next_step_handler(message, manage_orders)
-
-
-# если нажал мой адресс
-@bot.message_handler(func=lambda message: message.text == bt.my_address)
-def my_adress(message):
-    order.get_my_address(message.chat.id)
+@bot.message_handler(content_types=['text'])
+def basic(message):
+    # если нажал купить
+    if message.text == bt.buy:
+        order.buy(message.chat.id)
+        bot.register_next_step_handler(message, get_type)
+    # если нажал продать
+    elif message.text == bt.sell:
+        order.sell(message.chat.id)
+        bot.register_next_step_handler(message, get_type)
+    # если нажал мои ордера
+    elif message.text == bt.my_orders:
+        order.get_my_orders(message.chat.id)
+        bot.register_next_step_handler(message, manage_orders)
+    # если нажал мой адресс
+    elif message.text == bt.my_address:
+        order.get_my_address(message.chat.id)
+    # если нажал редактировать адресс
+    elif message.text == bt.edit_address:
+        order.edit_address(message.chat.id)
+        bot.register_next_step_handler(message, get_new_address)
+    # если нажал помощь
+    elif message.text == bt.connect_admin:
+        bot.send_message(message.chat.id, 'Пиши админам @btcup555 или @bellik_niko', reply_markup=main)
+        bot.register_next_step_handler(message, basic)
+    # некорректный ввод
+    else:
+        bot.send_message(message.chat.id, 'Ошибка. Пожалуйста используй кнопки', reply_markup=main)
+        bot.register_next_step_handler(message, basic)
 
 
 def get_new_address(message):
     order.get_new_address(message.chat.id, message.text)
 
 
-# если нажал редактировать адресс
-@bot.message_handler(func=lambda message: message.text == bt.edit_address)
-def edit_address(message):
-    order.edit_address(message.chat.id)
-    bot.register_next_step_handler(message, get_new_address)
-
-
-@bot.message_handler(content_types=['text'])
 def get_type(message):
-    order.get_type(message.chat.id, message.text)
-    bot.register_next_step_handler(message, get_item)
-
+    if message.text in bt.types:
+        order.get_type(message.chat.id, message.text)
+        bot.register_next_step_handler(message, get_item)
+    else:
+        bot.send_message(message.chat.id, 'Ошибка. Пожалуйста используй кнопки', reply_markup=buttons_types)
+        bot.register_next_step_handler(message, get_type)
 
 def get_item(message):
     if order.get_item(message.chat.id, message.text):
@@ -108,25 +97,51 @@ def check_if_ok(message):
 
 
 def get_amount(message):
-    order.get_amount(message.chat.id, message.text)
-    bot.register_next_step_handler(message, get_price)
+    if message.text.isdigit():
+        order.get_amount(message.chat.id, message.text)
+        bot.register_next_step_handler(message, get_price)
+    else:
+        bot.send_message(message.chat.id, 'Ошибка. Пожалуйста введи число')
+        bot.register_next_step_handler(message, get_amount)
 
 
 def get_price(message):
-    order.get_price(message.chat.id, message.text)
-    order.request_confirm_order(message.chat.id)
-    bot.register_next_step_handler(message, req_confirm_order)
+    if message.text.isdigit():
+        order.get_price(message.chat.id, message.text)
+        order.request_confirm_order(message.chat.id)
+        bot.register_next_step_handler(message, req_confirm_order)
+    else:
+        bot.send_message(message.chat.id, 'Ошибка. Пожалуйста введи число')
+        bot.register_next_step_handler(message, get_price)
 
 
 def req_confirm_order(message):
-    if order.check(message.chat.id, message.text) == 'buy':
-        bot.register_next_step_handler(message, get_tx_id)
+    if message.text == bt.yes:
+        if order.check(message.chat.id, message.text) == 'buy':
+            bot.register_next_step_handler(message, get_tx_id)
+        else:
+            bot.register_next_step_handler(message, get_credentials)
+    elif message.text == bt.no:
+        bot.send_message(message.chat.id, 'Хорошо, давай заново', reply_markup=main)
+        bot.register_next_step_handler(message, start)
     else:
-        bot.register_next_step_handler(message, get_credentials)
+        bot.send_message(message.chat.id, 'Ошибка. Пожалуйста используй кнопки', reply_markup=buttons_check)
+        bot.register_next_step_handler(message, req_confirm_order)
+
 
 
 def get_tx_id(message):
     order.confirm_payment(message.chat.id, message.text)
+
+
+# админ хендлеры
+def admin_manage(message):
+    order.admin_manage(message.chat.id, message.text)
+    bot.register_next_step_handler(message, verify_order)
+
+def verify_order(message):
+    order.verify_order(message.chat.id, message.text)
+    bot.register_next_step_handler(message, get_new_credentials)
 
 
 def manage_orders(message):
