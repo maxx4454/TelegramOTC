@@ -6,8 +6,9 @@ bt = Buttons()
 # Реплай кнопки в начале
 main = telebot.types.ReplyKeyboardMarkup(True)
 main.row(bt.buy, bt.sell)
-main.row(bt.my_orders, bt.my_address)
-main.row(bt.edit_address)
+main.row(bt.my_orders)
+main.row(bt.my_address, bt.edit_address)
+main.row(bt.connect_admin)
 
 # go_main = telebot.types.ReplyKeyboardMarkup(True)
 # go_main.row(bt.back)
