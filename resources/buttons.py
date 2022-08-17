@@ -17,4 +17,5 @@ class Buttons:
     cancel_order = 'Отменить ордер'
     my_address = 'Мой адресс'
     edit_address = 'Редактировать адресс'
+    connect_admin = 'Помощь (связаться с админом)'
     types = [allocation, wl, sn_account, unlocked_tokens, other]
