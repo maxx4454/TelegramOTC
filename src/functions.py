@@ -65,20 +65,15 @@ class Order:
         self._order['side'] = 'sell'
         self._order['user_id'] = user_id
 
-    # Название item
+    # Тип item
     def get_type(self, user_id, msg):
-        if msg in bt.types:
-            self._order['type'] = msg
-            bot.send_message(user_id,
-                             'Теперь напиши название самого товара',
-                             reply_markup=telebot.types.ReplyKeyboardRemove()
-                             )
-        else:
-            bot.send_message(user_id,
-                             'Пожалуйста, используй кнопки. Начни с начала',
-                             reply_markup=telebot.types.ReplyKeyboardRemove()
-                             )
+        self._order['type'] = msg
+        bot.send_message(user_id,
+                         'Теперь напиши название самого товара',
+                         reply_markup=telebot.types.ReplyKeyboardRemove()
+                         )
 
+    # Название item
     def get_item(self, user_id, msg):
         self._order['item'] = self._order['type'] + '_' + msg
         best_offers_string = Utils.print_best_offers(db.get_best_offers(msg))
@@ -90,10 +85,12 @@ class Order:
             bot.send_message(user_id, 'u sure everything fine with the name? follow guidelines plz? TYPE "YES" if fine')
             return False
 
+    # Количество item
     def get_amount(self, user_id, msg):
         self._order['amount'] = Utils.input_int(msg)
         bot.send_message(user_id, 'Сколько стоит?')
 
+    # Цена item
     def get_price(self, user_id, msg):
         self._order['price'] = Utils.input_int(msg)
 
@@ -108,32 +105,25 @@ class Order:
                          'Все верно?', reply_markup=buttons_check)
 
     def check(self, user_id, msg):
-        if msg == bt.yes:
-            if self._order['side'] == 'buy':
-                bot.send_message(user_id,
-                                 'Отлично! Добавим твой ордер в базу\nНапиши в чат tx_id когда транзакция подтвердится',
-                                 reply_markup=telebot.types.ReplyKeyboardRemove())
-                return 'buy'
-            else:
-                bot.send_message(user_id,
-                                 'Отлично! Добавим твой ордер в базу\nОтправь файл формата .txt со всеми credentials по указанным товарам, каждый товар на отдельной строке',
-                                 reply_markup=telebot.types.ReplyKeyboardRemove())
-                return 'sell'
-
-        if msg == bt.no:
-            bot.send_message(user_id, 'Давай разбираться что не так',
-                             reply_markup=telebot
-                             .types.ReplyKeyboardRemove())
-            return False
+        if self._order['side'] == 'buy':
+            bot.send_message(user_id,
+                             'Отлично! Добавим твой ордер в базу\nНапиши в чат tx_id когда транзакция подтвердится',
+                             reply_markup=telebot.types.ReplyKeyboardRemove())
+            return 'buy'
+        else:
+            bot.send_message(user_id,
+                             'Отлично! Добавим твой ордер в базу\nОтправь файл формата .txt со всеми credentials по указанным товарам, каждый товар на отдельной строке',
+                             reply_markup=telebot.types.ReplyKeyboardRemove())
+            return 'sell'
 
     def get_credentials(self, user_id, msg):
         try:
             file_info = bot.get_file(msg.document.file_id)
             downloaded_file = bot.download_file(file_info.file_path)
 
-            src = './resources/credentials/' + msg.document.file_name
+            src = '../resources/credentials/' + msg.document.file_name
             f_name = str(msg.document.file_name)
-            assert f_name[len(f_name)-1-4:] == ".txt"
+            assert f_name[len(f_name)-4:] == ".txt"
 
             with open(src, 'wb') as new_file:
                 new_file.write(downloaded_file)
@@ -164,9 +154,10 @@ class Order:
         self.admin_request_verify(user_id)
 
     def admin_request_verify(self, user_id):
-        admin_id = 585587478
-        bot.send_message(admin_id, 'go verify')
-        bot.send_message(user_id, 'wait for verification')
+        admins = ADMIN
+        for admin_id in admins:
+            bot.send_message(admin_id, 'go verify')
+        bot.send_message(user_id, 'wait for verification', reply_markup=main)
 
     def create_item(self):
         db.create_item(self._order['item'], self._order['type'])
@@ -207,11 +198,11 @@ class Order:
             db.delete_first_unverified(self._adm_order[0])
             bot.send_message(self._adm_order[1], 'Ордер отклонен')
 
-        # Обрабатывает нажатие на кнопу мой адресс
+        # Обрабатывает нажатие на кнопку мой адресс
 
     def get_my_address(self, user_id):
         if db.return_address(user_id):
-            bot.send_message(user_id, f'Твой адресс: {db.return_address(user_id)}')
+            bot.send_message(user_id, f'Твой адресс: {db.return_address(user_id)[0]}')
         else:
             bot.send_message(user_id, 'Ты еще не говорил мне свой адресс\nНажми на кнопку Редактировать адресс',
                              reply_markup=main)
@@ -237,7 +228,7 @@ class Order:
         file_info = bot.get_file(msg.document.file_id)
         downloaded_file = bot.download_file(file_info.file_path)
 
-        src = './resources/new_credentials/' + msg.document.file_name
+        src = '../resources/new_credentials/' + msg.document.file_name
         with open(src, 'wb') as new_file:
             new_file.write(downloaded_file)
         with open(src, 'r') as f:
