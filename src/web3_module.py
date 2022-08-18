@@ -39,8 +39,13 @@ class Bsc:
     def check_deposit(cls, amount: int, tx_id):
         try:
             tx = cls.w3.eth.get_transaction(tx_id)
-            usdc = cls.w3.toChecksumAddress(ADM_WALLET)
+            usdc = cls.w3.toChecksumAddress(cls.w3.toChecksumAddress(usdc_address))
             amount *= 10 ** 18
+            receipt = cls.w3.eth.getTransactionReceipt(tx_id)
+            
+            if not receipt['status']:
+                return False
+                
             if tx['to'] == usdc:
                 # print('found somme')
                 methodID = tx['input'][:10]
