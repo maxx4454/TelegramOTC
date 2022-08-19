@@ -14,15 +14,21 @@ class Order:
     def get_my_orders(self, user_id):
         buy_orders = ''
         sell_orders = ''
+        unverified_orders = ''
         orders = db.find_active_orders(user_id)
+        unverified = [] # должен быть массив из неверифицированных ордеров
         if len(orders) != 0:
             for index, order in enumerate(orders):
-                if order[1] == 'buy':
-                    buy_orders += f'{index + 1} - Тип_товар: {order[3]}, Количество: {str(order[2])}, Цена: {str(order[4])}\n'
+                if order in unverified:
+                    unverified += f'{index + 1} - Тип_товар: {order[3]}, Количество: {str(order[2])}, Цена: {str(order[4])}\n'
                 else:
-                    sell_orders += f'{index + 1} - Тип_товар: {order[3]}, Количество: {str(order[2])}, Цена: {str(order[4])}\n'
+                    if order[1] == 'buy':
+                        buy_orders += f'{index + 1} - Тип_товар: {order[3]}, Количество: {str(order[2])}, Цена: {str(order[4])}\n'
+                    else:
+                        sell_orders += f'{index + 1} - Тип_товар: {order[3]}, Количество: {str(order[2])}, Цена: {str(order[4])}\n'
             bot.send_message(user_id, '<b>Твои ордера на покупку:</b>\n\n' + buy_orders, parse_mode='html')
-            bot.send_message(user_id, '<b>Твои ордера на продажу:</b>\n\n' + sell_orders, parse_mode='html')
+            bot.send_message(user_id, '<b>Твои <i>верифицированные</i> ордера на продажу:</b>\n\n' + sell_orders, parse_mode='html')
+            bot.send_message(user_id, '<b>Твои <i>неверифицированные</i> ордера на продажу:</b>\n\n' + sell_orders, parse_mode='html')
             bot.send_message(user_id, 'Напиши номер ордера (число слева) который хочешь изменить или 0 чтобы вернуться',
                              reply_markup=telebot.types.ReplyKeyboardRemove())
         else:
@@ -82,7 +88,7 @@ class Order:
             bot.send_message(user_id, 'Сколько штук?')
             return True
         else:
-            bot.send_message(user_id, 'u sure everything fine with the name? follow guidelines plz? TYPE "YES" if fine')
+            bot.send_message(user_id, 'Ордеров на такой товар еще нет, ты уверен что правильно написал название?', reply_markup=buttons_check)
             return False
 
     # Количество item
@@ -107,7 +113,8 @@ class Order:
     def check(self, user_id, msg):
         if self._order['side'] == 'buy':
             bot.send_message(user_id,
-                             'Отлично! Добавим твой ордер в базу\nНапиши в чат tx_id когда транзакция подтвердится',
+                             f'Теперь переведи {self._order["price"] * self._order["amount"]} usdc в сети bep20 на адрес {ADM_WALLET}\n'
+                             f'После этого отправить id транзакции (чтобы мы могли идентифировать что деньги пришли именно от тебя) когда она подтвердится',
                              reply_markup=telebot.types.ReplyKeyboardRemove())
             return 'buy'
         else:
