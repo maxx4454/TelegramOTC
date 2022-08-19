@@ -132,12 +132,16 @@ def get_item(message):
 
 
 def check_if_ok(message):
-    if message.text == "YES":
+    if message.text == bt.yes:
         bot.send_message(message.chat.id, 'Сколько штук?')
         order.create_item()
         bot.register_next_step_handler(message, get_amount)
+    elif message.text == bt.no:
+        bot.send_message(message.chat.id, 'Напиши корректное название товара', reply_markup=telebot.types.ReplyKeyboardRemove())
+        bot.register_next_step_handler(message, get_item)
     else:
-        bot.send_message(message.chat.id, 'start over')
+        bot.send_message(message.chat.id, 'Ошибка. Пожалуйста используй кнопки', reply_markup=buttons_check)
+        bot.register_next_step_handler(message, check_if_ok)
 
 
 def get_amount(message):
