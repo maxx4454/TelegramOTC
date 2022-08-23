@@ -94,6 +94,12 @@ class MarketMaking():
                     amount_sell -= amount_buy
                     _order = {'user_id': sell_order[0], 'item': sell_order[1], 'side': 'sell', 'amount': amount_sell,
                               'price': sell_order[4], 'credentials': creds_left}
+
+                    bot.send_message(buy_order[0], 'Сделка прошла успешна, отправляю твой товар')
+                    with open('../resources/new_credentials/new.txt', 'w') as file:
+                        file.write('') # строка с новыми credentials
+                    bot.send_document(buy_order[0], file)
+
                     db.add_to_verified(_order)
 
             print('db work finished')
