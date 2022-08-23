@@ -16,7 +16,7 @@ class Order:
         sell_orders = ''
         unverified_orders = ''
         orders = db.find_active_orders(user_id)
-        unverified = [] # должен быть массив из неверифицированных ордеров
+        unverified = []
         if len(orders) != 0:
             for index, order in enumerate(orders):
                 if order in unverified:
