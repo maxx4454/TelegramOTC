@@ -194,7 +194,10 @@ class Order:
         if len(orders) != 0:
             for index, order in enumerate(orders):
                 s += f'{index + 1} - {str(order)}\n'
-            bot.send_message(user_id, s)
+            try:
+                bot.send_message(user_id, s)
+            except:
+                print(s)
             bot.send_message(user_id, 'Напиши номер ордера который хочешь изменить или 0 чтобы вернуться',
                              reply_markup=telebot.types.ReplyKeyboardRemove())
         else:
