@@ -258,5 +258,5 @@ class Order:
             new_file.write(downloaded_file)
         with open(src, 'r') as f:
             new_credentials = f.read()
-        # new_credentials - строка с содержимым файла
+        db.update_credentials(self._adm_order, new_credentials)
         bot.send_message(user_id, 'Главное меню', reply_markup=main)
