@@ -75,8 +75,10 @@ class MarketMaking():
             creds_left = Utils.generate_creds_string(creds, deal_amount)
 
             Bsc.withdraw(buy_order[4] * deal_amount, addr_sell)
-            bot.send_message(buy_order[0], creds_order)
-            bot.send_message(sell_order[0], f'ur shit sold: {sell_order[1]}')
+            bot.send_message(buy_order[0], f'Сделка {sell_order[1]} прошла успешна, отправляю твой товар: ')
+            with open('../resources/new_credentials/new.txt', 'w') as file:
+                file.write(creds_order) 
+            bot.send_document(buy_order[0], file)
 
             print('exchanged')
 
@@ -88,18 +90,13 @@ class MarketMaking():
                     amount_buy -= amount_sell
                     _order = {'user_id': buy_order[0], 'item': buy_order[1], 'side': 'buy', 'amount': amount_buy,
                               'price': buy_order[4], 'credentials': None}
-                    db.add_to_verified(_order)
+                    db.add_order(_order, True)
                 else:
                     amount_sell -= amount_buy
                     _order = {'user_id': sell_order[0], 'item': sell_order[1], 'side': 'sell', 'amount': amount_sell,
                               'price': sell_order[4], 'credentials': creds_left}
 
-                    bot.send_message(buy_order[0], 'Сделка прошла успешна, отправляю твой товар')
-                    with open('../resources/new_credentials/new.txt', 'w') as file:
-                        file.write('')  # строка с новыми credentials
-                    bot.send_document(buy_order[0], file)
-
-                    db.add_to_verified(_order)
+                    db.add_order(_order, True)
 
             print('db work finished')
         except Exception as e:
