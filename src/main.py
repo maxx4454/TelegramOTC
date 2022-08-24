@@ -25,7 +25,6 @@ def get_new_credentials(message):
 def get_credentials(message):
     order.get_credentials(message.chat.id, message)
 
-
 @bot.message_handler(commands=['start'])
 def start(message):
     bot.send_message(message.chat.id,
