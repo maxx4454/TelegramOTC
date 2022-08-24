@@ -133,7 +133,7 @@ def get_item(message):
 
 def check_if_ok(message):
     if message.text == bt.yes:
-        bot.send_message(message.chat.id, 'Сколько штук?')
+        bot.send_message(message.chat.id, 'Сколько штук?', reply_markup=telebot.types.ReplyKeyboardRemove())
         order.create_item()
         bot.register_next_step_handler(message, get_amount)
     elif message.text == bt.no:

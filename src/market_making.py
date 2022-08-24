@@ -47,7 +47,6 @@ class MarketMaking():
         elif type == "whitelist":
             self.simple_trade(buy_order, sell_order, id_buy, id_sell)
 
-
         elif type == "social network account":
             self.simple_trade(buy_order, sell_order, id_buy, id_sell)
 
@@ -97,7 +96,7 @@ class MarketMaking():
 
                     bot.send_message(buy_order[0], 'Сделка прошла успешна, отправляю твой товар')
                     with open('../resources/new_credentials/new.txt', 'w') as file:
-                        file.write('') # строка с новыми credentials
+                        file.write('')  # строка с новыми credentials
                     bot.send_document(buy_order[0], file)
 
                     db.add_to_verified(_order)

@@ -13,22 +13,31 @@ class Order:
     # Обрабатывает нажатие на кнопку мои ордера
     def get_my_orders(self, user_id):
         buy_orders = ''
-        sell_orders = ''
-        unverified_orders = ''
-        orders = db.find_active_orders(user_id)
-        unverified = []
-        if len(orders) != 0:
-            for index, order in enumerate(orders):
-                if order in unverified:
-                    unverified += f'{index + 1} - Тип_товар: {order[3]}, Количество: {str(order[2])}, Цена: {str(order[4])}\n'
+        verified_sell_orders = ''
+        unverified_sell_orders = ""
+
+        verified, unverified = db.find__orders_user(user_id)
+
+        if len(verified) + len(unverified) != 0:
+            for index, order in enumerate(verified):
+                if order[1] == 'buy':
+                    buy_orders += f'{index + 1} - Тип_товар: {order[3]}, Количество: {str(order[2])}, Цена: {str(order[4])}\n'
                 else:
-                    if order[1] == 'buy':
-                        buy_orders += f'{index + 1} - Тип_товар: {order[3]}, Количество: {str(order[2])}, Цена: {str(order[4])}\n'
-                    else:
-                        sell_orders += f'{index + 1} - Тип_товар: {order[3]}, Количество: {str(order[2])}, Цена: {str(order[4])}\n'
-            bot.send_message(user_id, '<b>Твои ордера на покупку:</b>\n\n' + buy_orders, parse_mode='html')
-            bot.send_message(user_id, '<b>Твои <i>верифицированные</i> ордера на продажу:</b>\n\n' + sell_orders, parse_mode='html')
-            bot.send_message(user_id, '<b>Твои <i>неверифицированные</i> ордера на продажу:</b>\n\n' + sell_orders, parse_mode='html')
+                    verified_sell_orders += f'{index + 1} - Тип_товар: {order[3]}, Количество: {str(order[2])}, Цена: {str(order[4])}\n'
+
+            for index, order in enumerate(unverified):
+                unverified_sell_orders += f'{index + 1} - Тип_товар: {order[3]}, Количество: {str(order[2])}, Цена: {str(order[4])}\n'
+
+            if buy_orders != "":
+                bot.send_message(user_id, '<b>Твои ордера на покупку:</b>\n\n' + buy_orders, parse_mode='html')
+            if verified_sell_orders != "":
+                bot.send_message(user_id,
+                                 '<b>Твои <i>верифицированные</i> ордера на продажу:</b>\n\n' + verified_sell_orders,
+                                 parse_mode='html')
+            if unverified_sell_orders != "":
+                bot.send_message(user_id,
+                                 '<b>Твои <i>неверифицированные</i> ордера на продажу:</b>\n\n' + unverified_sell_orders,
+                                 parse_mode='html')
             bot.send_message(user_id, 'Напиши номер ордера (число слева) который хочешь изменить или 0 чтобы вернуться',
                              reply_markup=telebot.types.ReplyKeyboardRemove())
         else:
@@ -41,7 +50,7 @@ class Order:
             bot.send_message(user_id, 'Главное меню', reply_markup=main)
         else:
             order_id = int(msg) - 1
-            self._change_order_id = order_id
+            self._change_order_id = orders[order_id][0]
             bot.send_message(user_id,
                              f'{order_id} - Тип_товар: {orders[order_id][3]}, Количество: {str(orders[order_id][2])}, Цена: {str(orders[order_id][4])}\n')
             bot.send_message(user_id, 'Что ты хочешь изменить в этом ордере?', reply_markup=buttons_manage)
@@ -85,10 +94,11 @@ class Order:
         best_offers_string = Utils.print_best_offers(db.get_best_offers(msg))
         if db.find_item(self._order['item']):
             bot.send_message(user_id, 'best offers: ' + "\n" + best_offers_string)
-            bot.send_message(user_id, 'Сколько штук?')
+            bot.send_message(user_id, 'Сколько штук?', reply_markup=telebot.types.ReplyKeyboardRemove())
             return True
         else:
-            bot.send_message(user_id, 'Ордеров на такой товар еще нет, ты уверен что правильно написал название?', reply_markup=buttons_check)
+            bot.send_message(user_id, 'Ордеров на такой товар еще нет, ты уверен что правильно написал название?',
+                             reply_markup=buttons_check)
             return False
 
     # Количество item
@@ -111,8 +121,10 @@ class Order:
                          'Все верно?', reply_markup=buttons_check)
 
     def check(self, user_id, msg):
+
         if self._order['side'] == 'buy':
             bot.send_message(user_id,
+
                              f'Теперь переведи {self._order["price"] * self._order["amount"]} usdc в сети bep20 на адрес {ADM_WALLET}\n'
                              f'После этого отправить id транзакции (чтобы мы могли идентифировать что деньги пришли именно от тебя) когда она подтвердится',
                              reply_markup=telebot.types.ReplyKeyboardRemove())
@@ -130,7 +142,7 @@ class Order:
 
             src = '../resources/credentials/' + msg.document.file_name
             f_name = str(msg.document.file_name)
-            assert f_name[len(f_name)-4:] == ".txt"
+            assert f_name[len(f_name) - 4:] == ".txt"
 
             with open(src, 'wb') as new_file:
                 new_file.write(downloaded_file)
@@ -151,9 +163,9 @@ class Order:
         payment = int(self._order['price']) * int(self._order['amount'])
         if Bsc.check_deposit(payment, tx_id):
             db.add_to_verified(self._order)
-            bot.send_message(user_id, 'ордер выставлен')
+            bot.send_message(user_id, 'Ордер успешно выставлен!')
         else:
-            bot.send_message(user_id, 'что-то не так. пиши админу')
+            bot.send_message(user_id, 'Что-то пошло не так. Свяжись с @btcup555')
 
     def confirm_credentials(self, user_id, msg):
         self._order['credentials'] = msg

@@ -2,9 +2,9 @@ import sqlite3
 
 
 class Database:
-    __connection_user = sqlite3.connect('./resources/user_data.db', check_same_thread=False)
-    __connection_market = sqlite3.connect('./resources/market_data.db', check_same_thread=False)
-    __connection_verified = sqlite3.connect('./resources/verified_data.db', check_same_thread=False)
+    __connection_user = sqlite3.connect('../resources/user_data.db', check_same_thread=False)
+    __connection_market = sqlite3.connect('../resources/market_data.db', check_same_thread=False)
+    __connection_verified = sqlite3.connect('../resources/verified_data.db', check_same_thread=False)
 
     # creates db, restarts if force = True
     def init(self, force=False):
@@ -116,8 +116,7 @@ class Database:
         return c_v.fetchall()
 
     # returns all orders for user_id, including unverified
-    def find_active_orders(self, user_id: int):
-        list = []
+    def find__orders_user(self, user_id: int):
         conn_v = self.__connection_verified
         c_v = conn_v.cursor()
         c_v.execute(
@@ -127,11 +126,8 @@ class Database:
         c = conn.cursor()
         c.execute(f"SELECT id, side, amount, item, price FROM order_data WHERE user_id = '{user_id}' ORDER BY item")
         res2 = c.fetchall()
-        for item in res1:
-            list.append(item)
-        for item in res2:
-            list.append(item)
-        return list
+
+        return res1, res2
 
     # returns lisst of all unverified orders
     def find_unverified(self):
@@ -271,3 +267,5 @@ class Database:
         c.execute('INSERT INTO item_data (item, item_type) VALUES (?, ?)', (item, item_type))
 
         conn.commit()
+
+    defe
