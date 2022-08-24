@@ -63,6 +63,13 @@ class Database:
         c_market.execute(f'UPDATE order_data SET price = {new_price} WHERE Id = "{order_id}"')
         conn.commit()
 
+    def update_credentials(self, order_id, new_creds):
+        conn = self.__connection
+        c_market = conn.cursor()
+        c_market.execute(f'UPDATE order_data SET credentials = {new_creds} WHERE Id = "{order_id}"')
+        conn.commit()
+
+
     # returns True if address for a given user_id is known, false otherwise
     def find_user_address(self, user_id):
         conn = self.__connection
