@@ -212,8 +212,5 @@ class Database:
         c = conn.cursor()
         c.execute(
             f'SELECT id, amount, credentials FROM order_data WHERE verified = False')
-        sell_offers = c.fetchone()
-        if sell_offers:
-            return sell_offers[0]
-        return None
-
+        sell_offers = c.fetchall()
+        return sell_offers
