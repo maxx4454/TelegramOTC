@@ -1,4 +1,5 @@
 from market_making import *
+import os
 
 bt = Buttons()
 
@@ -20,7 +21,7 @@ class Order:
 
         orders_user = db.find_orders_user(user_id)
         for order in orders_user:
-            if order[6]:
+            if order[5]:
                 verified.append(order)
             else:
                 unverified.append(order)
@@ -155,6 +156,8 @@ class Order:
                 new_file.write(downloaded_file)
             with open(src, 'r') as f:
                 credentials = f.read()
+            # удаление файла
+            os.remove(src)
             # credentials - строка с содержимым файла
             self.confirm_credentials(user_id, credentials)
         except AssertionError:
@@ -189,12 +192,14 @@ class Order:
 
     # Админка
     def admin(self, user_id):
+        bot.send_message(user_id, 'Перед работой, ознакомься с <a href="https://telegra.ph/Gajd-dlya-adminov-OTC-bota-08-28">инструкцией для админов</a>', parse_mode='html')
         s = ''
         orders = db.find_unverified()
         if len(orders) != 0:
             for index, order in enumerate(orders):
-                s += f'{index + 1} - {str(order)}\n'
+                s += f'{index + 1} - Тип_товар: {order[2]}, Количество: {str(order[4])}, Цена: {str(order[5])}\n'
             try:
+                bot.send_message(user_id, '<b>Необработанные ордера:</b>', parse_mode='html')
                 bot.send_message(user_id, s)
             except:
                 print(s)
@@ -210,7 +215,16 @@ class Order:
             bot.send_message(user_id, 'Главное меню', reply_markup=main)
         else:
             order_id = int(msg) - 1
-            bot.send_message(user_id, str(orders[order_id]))
+            bot.send_message(user_id, f'Тип_товар: {orders[order_id][2]}, Количество: {str(orders[order_id][4])}, Цена: {str(orders[order_id][5])}\n')
+
+            src = '../resources/credentials/' + f'creds_{order_id}.txt'
+
+            with open(src, 'w') as new_file:
+                new_file.write(orders[order_id][6])
+            with open(src, 'r') as f:
+                bot.send_document(user_id, f)
+
+
             self._adm_order = orders[order_id]
             bot.send_message(user_id, 'Выбери действие', reply_markup=buttons_verify)
 
@@ -219,15 +233,17 @@ class Order:
             # верифицирует ордер
             db.verify_first_unverified(self._adm_order[0])
             bot.send_message(self._adm_order[1], 'Ордер верифицирован')
-            bot.send_message(user_id, 'Скинь файл .txt с новыми credentials')
-
-        if msg == bt.decline:
+            bot.send_message(user_id, 'Скинь файл .txt с новыми credentials', reply_markup=telebot.types.ReplyKeyboardRemove())
+        elif msg == bt.decline:
             # отклоняет ордер
             db.delete_first_unverified(self._adm_order[0])
             bot.send_message(self._adm_order[1], 'Ордер отклонен')
+        # else:
+            # сделать проверку что если админ долбоеб и не нажал на кнопки его еще раз просило выбрать кнопку (через main)
 
-        # Обрабатывает нажатие на кнопку мой адресс
 
+
+    # Обрабатывает нажатие на кнопку мой адресс
     def get_my_address(self, user_id):
         if db.return_address(user_id):
             bot.send_message(user_id, f'Твой адресс: {db.return_address(user_id)[0]}')
