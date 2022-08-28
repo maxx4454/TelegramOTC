@@ -211,6 +211,6 @@ class Database:
         conn = self.__connection
         c = conn.cursor()
         c.execute(
-            f'SELECT id, amount, credentials FROM order_data WHERE verified = False')
+            f'SELECT id, user_id, item, side, amount, price, credentials  FROM order_data WHERE verified = False')
         sell_offers = c.fetchall()
         return sell_offers
