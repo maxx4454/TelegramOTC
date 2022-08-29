@@ -184,8 +184,8 @@ class Order:
 
     def admin_request_verify(self, user_id):
         for admin_id in ADMIN:
-            bot.send_message(admin_id, 'go verify')
-        bot.send_message(user_id, 'wait for verification', reply_markup=main)
+            bot.send_message(admin_id, 'Новый неверифицированный ордер')
+        bot.send_message(user_id, 'Твой ордер отправлен на проверку, ожидай результат верификации', reply_markup=main)
 
     def create_item(self):
         db.create_item(self._order['item'], self._order['type'])
@@ -229,17 +229,26 @@ class Order:
             bot.send_message(user_id, 'Выбери действие', reply_markup=buttons_verify)
 
     def verify_order(self, user_id, msg):
-        if msg == bt.verify:
-            # верифицирует ордер
-            db.verify_first_unverified(self._adm_order[0])
-            bot.send_message(self._adm_order[1], 'Ордер верифицирован')
-            bot.send_message(user_id, 'Скинь файл .txt с новыми credentials', reply_markup=telebot.types.ReplyKeyboardRemove())
-        elif msg == bt.decline:
-            # отклоняет ордер
-            db.delete_first_unverified(self._adm_order[0])
-            bot.send_message(self._adm_order[1], 'Ордер отклонен')
-        # else:
-            # сделать проверку что если админ долбоеб и не нажал на кнопки его еще раз просило выбрать кнопку (через main)
+        # верифицирует ордер
+        db.verify_first_unverified(self._adm_order[0])
+        bot.send_message(self._adm_order[1], 'Твой ордер:\n'
+                                            f'Тип_товар: {self._adm_order[2]}, Количество: {str(self._adm_order[4])}, Цена: {str(self._adm_order[5])}\n'
+                                            '<b>верифицирован</b>, т.к. прошел проверку\n'
+                                             'Теперь его могут видеть другие пользователи',
+                         parse_mode='html')
+        bot.send_message(user_id, 'Скинь файл .txt с новыми credentials', reply_markup=telebot.types.ReplyKeyboardRemove())
+
+    def decline_order(self, user_id, msg):
+        # отклоняет ордер
+        db.delete_first_unverified(self._adm_order[0])
+        bot.send_message(self._adm_order[1], 'Твой ордер:\n'
+                                             f'Тип_товар: {self._adm_order[2]}, Количество: {str(self._adm_order[4])}, Цена: {str(self._adm_order[5])}\n'
+                                             '<b>Отклонен</b>, т.к. не прошел проверку.\n'
+                                             'Если ты уверен что указанные данные корректны, напиши админу @btcup555\n'
+                                             'К сообщению прикрепи файл .txt с данными, он вручную их проверит',
+                         parse_mode='html')
+
+
 
 
 
