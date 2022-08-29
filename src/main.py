@@ -74,7 +74,7 @@ def basic(message):
         bot.register_next_step_handler(message, get_new_address)
     # если нажал помощь
     elif message.text == bt.connect_admin:
-        bot.send_message(message.chat.id, 'Пиши админам @btcup555 или @bellik_niko', reply_markup=main)
+        bot.send_message(message.chat.id, 'Админы: @btcup555, @bellik_niko', reply_markup=main)
         bot.register_next_step_handler(message, basic)
     # некорректный ввод
     else:
@@ -147,7 +147,6 @@ def req_confirm_order(message):
         bot.register_next_step_handler(message, req_confirm_order)
 
 
-
 def get_tx_id(message):
     order.confirm_payment(message.chat.id, message.text)
 
@@ -155,11 +154,25 @@ def get_tx_id(message):
 # админ хендлеры
 def admin_manage(message):
     order.admin_manage(message.chat.id, message.text)
-    bot.register_next_step_handler(message, verify_order)
+    bot.register_next_step_handler(message, manage_order)
 
-def verify_order(message):
-    order.verify_order(message.chat.id, message.text)
-    bot.register_next_step_handler(message, get_new_credentials)
+def manage_order(message):
+    if message.text == bt.verify:
+        order.verify_order(message.chat.id, message.text)
+        bot.register_next_step_handler(message, get_new_credentials)
+    elif message.text == bt.decline:
+        order.decline_order(message.chat.id, message.text)
+        bot.send_message(message.chat.id, 'Админ панель')
+        order.admin(message.chat.id)
+        bot.register_next_step_handler(message, admin_manage)
+    elif message.text == bt.wait:
+        bot.send_message(message.chat.id, 'Окей, возвращаю тебя...', reply_markup=telebot.types.ReplyKeyboardRemove())
+        bot.send_message(message.chat.id, 'Админ панель')
+        order.admin(message.chat.id)
+        bot.register_next_step_handler(message, admin_manage)
+    else:
+        bot.send_message(message.chat.id, 'Ошибка. Пожалуйста используй кнопки', reply_markup=buttons_verify)
+        bot.register_next_step_handler(message, manage_order)
 
 
 def manage_orders(message):
