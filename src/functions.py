@@ -63,12 +63,9 @@ class Order:
                              f'{order_id} - Тип_товар: {orders[order_id][3]}, Количество: {str(orders[order_id][2])}, Цена: {str(orders[order_id][4])}\n')
             bot.send_message(user_id, 'Что ты хочешь изменить в этом ордере?', reply_markup=buttons_manage)
 
-    def change_order(self, user_id, msg):
-        if msg == bt.change_price:
-            bot.send_message(user_id, 'Напиши новую желаемую цену', reply_markup=telebot.types.ReplyKeyboardRemove())
-        if msg == bt.cancel_order:
-            db.remove_id(self._change_order_id)
-            bot.send_message(user_id, 'Ордер отменен')
+    def cancel_order(self, user_id, msg):
+        db.remove_id(self._change_order_id)
+        bot.send_message(user_id, 'Ордер отменен')
 
     def change_price(self, user_id, msg):
         new_price = Utils.input_int(msg)
