@@ -181,8 +181,18 @@ def manage_orders(message):
 
 
 def change_order(message):
-    order.change_order(message.chat.id, message.text)
-    bot.register_next_step_handler(message, change_price)
+    if message.text == bt.change_price:
+        bot.send_message(message.chat.id, 'Напиши новую желаемую цену', reply_markup=telebot.types.ReplyKeyboardRemove())
+        bot.register_next_step_handler(message, change_price)
+    elif message.text == bt.cancel_order:
+        order.cancel_order(message.chat.id, message.text)
+        bot.send_message(message.chat.id, 'Выбери действие из предложенных:', reply_markup=main)
+        bot.register_next_step_handler(message, basic)
+    else:
+        bot.send_message(message.chat.id, 'Ошибка. Пожалуйста используй кнопки', reply_markup=buttons_verify)
+        bot.register_next_step_handler(message, change_order)
+
+
 
 
 def change_price(message):
