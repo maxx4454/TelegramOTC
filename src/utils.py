@@ -22,10 +22,10 @@ class Utils:
         (best_buy_orders, best_sell_orders) = best_offers
         s = ""
         for item in best_buy_orders:
-            s += item
+            s += item[0]
 
         for item in best_sell_orders:
-            s += item
+            s += item[0]
 
         return s
 

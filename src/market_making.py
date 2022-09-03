@@ -18,8 +18,11 @@ class MarketMaking():
             sell_offer = db.find_best_sell_offer(item)
             buy_offer = db.find_best_buy_offer(item)
             if sell_offer and buy_offer:
+
+                print(sell_offer, buy_offer)
+
                 id_sell = sell_offer[0]
-                id_buy = buy_offer()[0]
+                id_buy = buy_offer[0]
                 price_sell = sell_offer[1]
                 price_buy = buy_offer[1]
 
@@ -77,8 +80,9 @@ class MarketMaking():
             Bsc.withdraw(buy_order[4] * deal_amount, addr_sell)
             bot.send_message(buy_order[0], f'Сделка {sell_order[1]} прошла успешна, отправляю твой товар: ')
             with open('../resources/new_credentials/new.txt', 'w') as file:
-                file.write(creds_order) 
-            bot.send_document(buy_order[0], file)
+                file.write(creds_order[0])
+            with open('../resources/new_credentials/new.txt', 'r') as file:
+                bot.send_document(buy_order[0], file)
 
             print('exchanged')
 
@@ -107,4 +111,5 @@ class MarketMaking():
     def market_making(self):
         while True:
             for item in db.read_items():
-                self.conduct_trade(item)
+                self.conduct_trade(item[0])
+

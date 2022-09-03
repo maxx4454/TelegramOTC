@@ -66,7 +66,7 @@ class Database:
     def update_credentials(self, order_id, new_creds):
         conn = self.__connection
         c_market = conn.cursor()
-        c_market.execute(f'UPDATE order_data SET credentials = {new_creds} WHERE Id = "{order_id}"')
+        c_market.execute(f'UPDATE order_data SET credentials = "{new_creds}" WHERE Id = "{order_id}"')
         conn.commit()
 
 
@@ -153,12 +153,15 @@ class Database:
     def get_best_offers(self, item: str):
         conn = self.__connection
         c = conn.cursor()
+
+        print(item)
         c.execute(
-            f'SELECT item, side, amount, price FROM order_data WHERE side = "buy" AND item = "{item}" AND verified = True ORDER BY price DESC LIMIT 5')
+            f'SELECT item, side, amount, price FROM order_data WHERE side = "buy" AND item = "{item}" AND verified = 1 ORDER BY price DESC LIMIT 5')
         best_buy_orders = c.fetchall()
+        print(best_buy_orders)
 
         c.execute(
-            f'SELECT item, side, amount, price FROM order_data WHERE side = "sell" AND item = "{item}" AND verified = True ORDER BY price ASC LIMIT 5')
+            f'SELECT item, side, amount, price FROM order_data WHERE side = "sell" AND item = "{item}" AND verified = 1 ORDER BY price ASC LIMIT 5')
         best_sell_orders = c.fetchall()
 
         return best_buy_orders, best_sell_orders
@@ -168,22 +171,27 @@ class Database:
     def find_best_sell_offer(self, item: str):
         conn = self.__connection
         c = conn.cursor()
+
         c.execute(
-            f'SELECT id, price, amount FROM order_data WHERE item = "{item}" AND verified = True AND price = (SELECT MIN(price) FROM order_data WHERE side = "SELL" AND verified = True ) AND side = "SELL"')
+            f'SELECT id, price, amount FROM order_data WHERE item = "{item}" AND side = "sell" AND verified = 1 AND price = (SELECT MIN(price) FROM order_data WHERE side = "sell" AND verified = 1 AND item = "{item}")')
+
         sell_offers = c.fetchone()
+
         if sell_offers:
-            return sell_offers[0]
+            return sell_offers
         return None
 
     # takes item string as input, returns best buy order: tuple (id, amount) for given item from confirmed offers
     def find_best_buy_offer(self, item: str):
         conn = self.__connection
         c = conn.cursor()
+
         c.execute(
-            f'SELECT id, price, amount FROM order_data WHERE item = "{item}" AND verified = True AND price = (SELECT MAX(price) FROM order_data WHERE side = "BUY") AND side = "BUY"')
+            f'SELECT id, price, amount FROM order_data WHERE item = "{item}" AND verified = 1 AND price = (SELECT MAX(price) FROM order_data WHERE side = "buy" AND verified = 1 AND item = "{item}") AND side = "buy"')
         buy_offers = c.fetchone()
+        print(buy_offers)
         if buy_offers:
-            return buy_offers[0]
+            return buy_offers
         return None
 
     def remove_id(self, _id: int):

@@ -96,8 +96,8 @@ class Order:
     # Название item
     def get_item(self, user_id, msg):
         self._order['item'] = self._order['type'] + '_' + msg
-        best_offers_string = Utils.print_best_offers(db.get_best_offers(msg))
-        if db.find_item(self._order['item']):
+        best_offers_string = Utils.print_best_offers(db.get_best_offers(self._order['item']))
+        if best_offers_string != "":
             bot.send_message(user_id, 'best offers: ' + "\n" + best_offers_string)
             bot.send_message(user_id, 'Сколько штук?', reply_markup=telebot.types.ReplyKeyboardRemove())
             return True
