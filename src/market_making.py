@@ -101,7 +101,6 @@ class MarketMaking():
                               'price': sell_order[4], 'credentials': creds_left}
 
                     db.add_order(_order, True)
-
             print('db work finished')
         except Exception as e:
             print(e)

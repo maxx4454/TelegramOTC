@@ -185,7 +185,8 @@ class Order:
         bot.send_message(user_id, 'Твой ордер отправлен на проверку, ожидай результат верификации', reply_markup=main)
 
     def create_item(self):
-        db.create_item(self._order['item'], self._order['type'])
+        if (self._order['item'],) not in db.read_items():
+            db.create_item(self._order['item'], self._order['type'])
 
     # Админка
     def admin(self, user_id):
