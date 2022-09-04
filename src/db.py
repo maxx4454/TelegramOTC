@@ -189,7 +189,6 @@ class Database:
         c.execute(
             f'SELECT id, price, amount FROM order_data WHERE item = "{item}" AND verified = 1 AND price = (SELECT MAX(price) FROM order_data WHERE side = "buy" AND verified = 1 AND item = "{item}") AND side = "buy"')
         buy_offers = c.fetchone()
-        print(buy_offers)
         if buy_offers:
             return buy_offers
         return None
