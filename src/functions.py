@@ -190,6 +190,7 @@ class Order:
 
     # Админка
     def admin(self, user_id):
+        bot.send_message(user_id, 'Админ панель')
         bot.send_message(user_id, 'Перед работой, ознакомься с <a href="https://telegra.ph/Gajd-dlya-adminov-OTC-bota-08-28">инструкцией для админов</a>', parse_mode='html')
         s = ''
         orders = db.find_unverified()
@@ -262,7 +263,7 @@ class Order:
     def edit_address(self, user_id):
         if db.return_address(user_id):
             bot.send_message(user_id, f'Твой текущий адресс: {db.return_address(user_id)[0]}')
-            bot.send_message(user_id, 'Введи новый адрес сети bep20:')
+            bot.send_message(user_id, 'Введи новый адрес сети bep20:', reply_markup=telebot.types.ReplyKeyboardRemove())
         else:
             bot.send_message(user_id, 'Введи свой адрес сети bep20:',
                              reply_markup=telebot.types.ReplyKeyboardRemove())
