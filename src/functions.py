@@ -145,7 +145,7 @@ class Order:
             file_info = bot.get_file(msg.document.file_id)
             downloaded_file = bot.download_file(file_info.file_path)
 
-            src = '../resources/credentials/' + msg.document.file_name
+            src = CREDENTIALS + msg.document.file_name
             f_name = str(msg.document.file_name)
             assert f_name[len(f_name) - 4:] == ".txt"
 
@@ -216,7 +216,7 @@ class Order:
             order_id = int(msg) - 1
             bot.send_message(user_id, f'Тип_товар: {orders[order_id][2]}, Количество: {str(orders[order_id][4])}, Цена: {str(orders[order_id][5])}\n')
 
-            src = '../resources/credentials/' + f'creds_{order_id}.txt'
+            src = CREDENTIALS + f'creds_{order_id}.txt'
 
             with open(src, 'w') as new_file:
                 new_file.write(orders[order_id][6])
@@ -280,7 +280,7 @@ class Order:
         file_info = bot.get_file(msg.document.file_id)
         downloaded_file = bot.download_file(file_info.file_path)
 
-        src = '../resources/new_credentials/' + msg.document.file_name
+        src = NEW_CREDENTIALS + msg.document.file_name
         with open(src, 'wb') as new_file:
             new_file.write(downloaded_file)
         with open(src, 'r') as f:
