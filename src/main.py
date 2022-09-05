@@ -9,13 +9,17 @@ db = Database()
 
 @bot.message_handler(commands=['admin'])
 def admin(message):
+    # проверка админ_id
     if str(message.from_user.id) in ADMIN:
-        bot.send_message(message.chat.id, 'Админ панель')
         order.admin(message.chat.id)
-        bot.register_next_step_handler(message, admin_manage)
+        if len(db.find_unverified()) != 0:
+            bot.register_next_step_handler(message, admin_manage)
+        else:
+            bot.register_next_step_handler(message, basic)
     else:
         bot.send_message(message.chat.id, 'У вас нет доступа')
         bot.send_message(message.chat.id, 'Главное меню', reply_markup=main)
+        bot.register_next_step_handler(message, basic)
 
 
 @bot.message_handler(content_types=['document'])
@@ -41,8 +45,10 @@ def start(message):
 
 @bot.message_handler(content_types=['text'])
 def basic(message):
+    if message.text == '/admin':
+        admin(message)
     # если нажал купить
-    if message.text == bt.buy:
+    elif message.text == bt.buy:
         if db.return_address(message.chat.id):
             order.buy(message.chat.id)
             bot.register_next_step_handler(message, get_type)
@@ -177,8 +183,13 @@ def manage_order(message):
 
 
 def manage_orders(message):
-    order.manage(message.chat.id, message.text)
-    bot.register_next_step_handler(message, change_order)
+    try:
+        order.manage(message.chat.id, message.text)
+        bot.register_next_step_handler(message, change_order)
+    except:
+        bot.send_message(message.chat.id, 'Ошибка. Ты ввел что-то не то, давай еще раз')
+        bot.send_message(message.chat.id, 'Напиши номер ордера (число слева) который хочешь изменить или 0 чтобы вернуться')
+        bot.register_next_step_handler(message, manage_orders)
 
 
 def change_order(message):
