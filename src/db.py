@@ -1,8 +1,9 @@
 import sqlite3
+from resources.config import *
 
 
 class Database:
-    __connection = sqlite3.connect('../resources/user_data.db', check_same_thread=False)
+    __connection = sqlite3.connect(USER_DATA, check_same_thread=False)
     
     # creates db, restarts if force = True
     def init(self, force=False):
