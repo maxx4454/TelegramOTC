@@ -50,12 +50,12 @@ class Order:
                              reply_markup=telebot.types.ReplyKeyboardRemove())
         else:
             bot.send_message(user_id, 'У тебя нет активных ордеров')
-            bot.send_message(user_id, 'Главное меню', reply_markup=main)
+            bot.send_message(user_id, '<b><strong><i>ГЛАВНОЕ МЕНЮ</i></strong></b>', parse_mode='html', reply_markup=main)
 
     def manage(self, user_id, msg):
         orders = db.find_orders_user(user_id)
         if msg == '0':
-            bot.send_message(user_id, 'Главное меню', reply_markup=main)
+            bot.send_message(user_id, '<b><strong><i>ГЛАВНОЕ МЕНЮ</i></strong></b>', parse_mode='html', reply_markup=main)
         else:
             order_id = int(msg) - 1
             self._change_order_id = orders[order_id][0]
@@ -190,7 +190,7 @@ class Order:
 
     # Админка
     def admin(self, user_id):
-        bot.send_message(user_id, 'Админ панель')
+        bot.send_message(user_id, '<b><strong><i>АДМИН ПАНЕЛЬ</i></strong></b>', parse_mode='html')
         bot.send_message(user_id, 'Перед работой, ознакомься с <a href="https://telegra.ph/Gajd-dlya-adminov-OTC-bota-08-28">инструкцией для админов</a>', parse_mode='html')
         s = ''
         orders = db.find_unverified()
@@ -206,12 +206,12 @@ class Order:
                              reply_markup=telebot.types.ReplyKeyboardRemove())
         else:
             bot.send_message(user_id, 'Нет необработанных ордеров')
-            bot.send_message(user_id, 'Главное меню', reply_markup=main)
+            bot.send_message(user_id, '<b><strong><i>ГЛАВНОЕ МЕНЮ</i></strong></b>', parse_mode='html', reply_markup=main)
 
     def admin_manage(self, user_id, msg):
         orders = db.find_unverified()
         if msg == '0':
-            bot.send_message(user_id, 'Главное меню', reply_markup=main)
+            bot.send_message(user_id, '<b><strong><i>ГЛАВНОЕ МЕНЮ</i></strong></b>', parse_mode='html', reply_markup=main)
         else:
             order_id = int(msg) - 1
             bot.send_message(user_id, f'Тип_товар: {orders[order_id][2]}, Количество: {str(orders[order_id][4])}, Цена: {str(orders[order_id][5])}\n')
@@ -286,4 +286,4 @@ class Order:
         with open(src, 'r') as f:
             new_credentials = f.read()
         db.update_credentials(self._adm_order, new_credentials)
-        bot.send_message(user_id, 'Главное меню', reply_markup=main)
+        bot.send_message(user_id, '<b><strong><i>ГЛАВНОЕ МЕНЮ</i></strong></b>', parse_mode='html', reply_markup=main)
