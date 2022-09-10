@@ -18,7 +18,7 @@ def admin(message):
             bot.register_next_step_handler(message, basic)
     else:
         bot.send_message(message.chat.id, 'У вас нет доступа')
-        bot.send_message(message.chat.id, 'Главное меню', reply_markup=main)
+        bot.send_message(message.chat.id, '<b><strong><i>ГЛАВНОЕ МЕНЮ</i></strong></b>', parse_mode='html', reply_markup=main)
         bot.register_next_step_handler(message, basic)
 
 
@@ -100,6 +100,7 @@ def get_type(message):
         bot.send_message(message.chat.id, 'Ошибка. Пожалуйста используй кнопки', reply_markup=buttons_types)
         bot.register_next_step_handler(message, get_type)
 
+
 def get_item(message):
     if order.get_item(message.chat.id, message.text):
         bot.register_next_step_handler(message, get_amount)
@@ -110,7 +111,6 @@ def get_item(message):
 def check_if_ok(message):
     if message.text == bt.yes:
         bot.send_message(message.chat.id, 'Сколько штук?', reply_markup=telebot.types.ReplyKeyboardRemove())
-
         order.create_item()
         bot.register_next_step_handler(message, get_amount)
     elif message.text == bt.no:
@@ -148,7 +148,7 @@ def req_confirm_order(message):
             bot.register_next_step_handler(message, get_credentials)
     elif message.text == bt.no:
         bot.send_message(message.chat.id, 'Хорошо, давай заново', reply_markup=main)
-        bot.register_next_step_handler(message, start)
+        bot.register_next_step_handler(message, basic)
     else:
         bot.send_message(message.chat.id, 'Ошибка. Пожалуйста используй кнопки', reply_markup=buttons_check)
         bot.register_next_step_handler(message, req_confirm_order)
@@ -158,10 +158,13 @@ def get_tx_id(message):
     order.confirm_payment(message.chat.id, message.text)
 
 
+
+
 # админ хендлеры
 def admin_manage(message):
     order.admin_manage(message.chat.id, message.text)
     bot.register_next_step_handler(message, manage_order)
+
 
 def manage_order(message):
     if message.text == bt.verify:
@@ -169,12 +172,10 @@ def manage_order(message):
         bot.register_next_step_handler(message, get_new_credentials)
     elif message.text == bt.decline:
         order.decline_order(message.chat.id, message.text)
-        bot.send_message(message.chat.id, 'Админ панель')
         order.admin(message.chat.id)
         bot.register_next_step_handler(message, admin_manage)
     elif message.text == bt.wait:
         bot.send_message(message.chat.id, 'Окей, возвращаю тебя...', reply_markup=telebot.types.ReplyKeyboardRemove())
-        bot.send_message(message.chat.id, 'Админ панель')
         order.admin(message.chat.id)
         bot.register_next_step_handler(message, admin_manage)
     else:
@@ -205,10 +206,10 @@ def change_order(message):
         bot.register_next_step_handler(message, change_order)
 
 
-
-
 def change_price(message):
     order.change_price(message.chat.id, message.text)
+
+
 
 
 def main_func():
